@@ -20,13 +20,13 @@ function initDatabase(associati) {
                 reject(err);
                 return;
             }
-            console.log('📦 Connesso al database SQLite');
+            console.log('Connesso al database SQLite');
 
             // Crea le tabelle
             createTables()
                 .then(() => initializeData(associati))
                 .then(() => {
-                    console.log('✅ Database inizializzato con successo');
+                    console.log('Database inizializzato con successo');
                     resolve();
                 })
                 .catch(reject);
@@ -96,12 +96,12 @@ function initializeData(associati) {
             }
 
             if (result.count > 0) {
-                console.log('📊 Dati già presenti nel database');
+                console.log('Dati già presenti nel database');
                 resolve();
                 return;
             }
 
-            console.log('🔄 Inizializzazione dati...');
+            console.log('Inizializzazione dati...');
 
             db.serialize(() => {
                 // Inserisci gli associati come utenti
@@ -119,7 +119,7 @@ function initializeData(associati) {
                     playerStmt.run(nome, baseValue);
                 });
                 playerStmt.finalize(() => {
-                    console.log(`✅ Inseriti ${associati.length} associati e ${associati.length} giocatori`);
+                    console.log(`Inseriti ${associati.length} associati e ${associati.length} giocatori`);
                     resolve();
                 });
             });
@@ -138,7 +138,7 @@ function closeDatabase() {
                 if (err) {
                     console.error('Errore chiusura database:', err);
                 } else {
-                    console.log('📦 Database chiuso');
+                    console.log('Database chiuso');
                 }
                 resolve();
             });

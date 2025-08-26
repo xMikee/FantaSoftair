@@ -6,7 +6,7 @@
 
 body {
     font-family: 'Arial', sans-serif;
-    background: linear-gradient(135deg, #23a712 0%, #50a94866 100%);
+    background: url('../img/multicam.jpg');
     min-height: 100vh;
     color: #333;
 }
@@ -28,7 +28,7 @@ body {
 }
 
 .header h1 {
-    color: #4a5568;
+    color: #8B7F66;
     font-size: 2.5em;
     margin-bottom: 10px;
     text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
@@ -217,12 +217,23 @@ body {
 }
 
 .ranking-position {
-    font-size: 1.5em;
+    font-size: 20px;
     font-weight: bold;
-    color: #667eea;
-    min-width: 40px;
+    color: #556145;
+    min-width: 30px;
+    text-align: center;
 }
-
+.ranking-med,
+.ranking-medal {
+    width: 100%;
+    max-width: 30px;
+}
+.listplayers{
+    display: flex;
+    flex-wrap: wrap;
+    max-height: 200px;
+    overflow-y: auto;
+}
 .ranking-name {
     font-weight: bold;
     flex: 1;
@@ -232,7 +243,7 @@ body {
 .ranking-points {
     font-size: 1.3em;
     font-weight: bold;
-    color: #48bb78;
+    color: #556145;
 }
 
 .market-player {

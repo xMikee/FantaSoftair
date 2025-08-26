@@ -248,7 +248,7 @@ app.post('/api/reset', (req, res) => {
 // Inizializza il database e avvia il server
 initDatabase(associati).then(() => {
     app.listen(PORT, () => {
-        console.log(`🎯 Fanta Softair A-Team server running on http://localhost:${PORT}`);
+        console.log(`Fanta Softair A-Team server running on http://localhost:${PORT}`);
     });
 }).catch(err => {
     console.error('Errore nell\'inizializzazione del database:', err);

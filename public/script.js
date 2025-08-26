@@ -94,11 +94,26 @@ function updateClassifica() {
     const rankingList = document.getElementById('ranking-list');
     rankingList.innerHTML = '';
 
+    let firstPosition = 'generale.png';
+    let secondPosition = 'colonnello.png';
+    let thirdPosition = 'capitano.png';
+
     ranking.forEach((user, index) => {
         const rankingItem = document.createElement('div');
         rankingItem.className = 'ranking-item';
-        rankingItem.innerHTML = `
-            <div class="ranking-position">${index + 1}°</div>
+        let medalHtml = '';
+        if (index === 0) {
+            medalHtml = `<img src="../img/${firstPosition}" alt="1°" class="ranking-medal"/>`;
+        } else if (index === 1) {
+            medalHtml = `<img src="../img/${secondPosition}" alt="2°" class="ranking-med"/>`;
+        } else if (index === 2) {
+            medalHtml = `<img src="../img/${thirdPosition}" alt="3°" class="ranking-med"/>`;
+        }else{
+            //medalHtml = index+1;
+            medalHtml = `<img src="../img/soldato.png" alt="3°" class="ranking-med"/>`;
+        }
+        rankingItem.innerHTML = `    
+            <div class="ranking-position">${medalHtml}</div>
             <div class="ranking-name">${user.name}</div>
             <div class="ranking-points">${user.total_points} pts (${user.team_size}/8)</div>
         `;
@@ -424,7 +439,7 @@ async function updateAllTeams() {
                     <span><strong>Crediti:</strong> ${user.credits}</span>
                     <span><strong>Punti Totali:</strong> ${user.total_points}</span>
                 </div>
-                <div style="max-height: 200px; overflow-y: auto;">
+                <div class="listplayers">
                     ${playersList}
                 </div>
             `;
