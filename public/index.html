@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fanta Softair A-Team</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>🎯 Fanta Softair A-Team</h1>
+        <p>Sistema di gestione fantasy per il club A-Team</p>
+    </div>
+
+    <div class="nav">
+        <button class="nav-btn active" onclick="showSection('classifica')">📊 Classifica</button>
+        <button class="nav-btn" onclick="showSection('mercato')">🛒 Mercato</button>
+        <button class="nav-btn" onclick="showSection('squadre')">👥 Le Mie Squadre</button>
+        <button class="nav-btn" onclick="showSection('admin')">⚙️ Admin</button>
+    </div>
+
+    <div id="loading" class="loading">
+        <p>Caricamento dati in corso...</p>
+    </div>
+
+    <!-- Sezione Classifica -->
+    <div id="classifica" class="section active">
+        <h2>🏆 Classifica Generale</h2>
+        <div id="ranking-list"></div>
+    </div>
+
+    <!-- Sezione Mercato -->
+    <div id="mercato" class="section">
+        <h2>🛒 Mercato dei Giocatori</h2>
+        <div class="grid grid-2">
+            <div class="card">
+                <h3>Il Tuo Team</h3>
+                <div class="form-group">
+                    <label>Seleziona Associato:</label>
+                    <select id="user-select">
+                        <option value="">Scegli associato...</option>
+                    </select>
+                </div>
+                <div id="user-credits" class="credits" style="display: none;">
+                    Crediti disponibili: <span id="credits-amount">1000</span>
+                </div>
+                <div id="user-team" class="team-display" style="display: none;">
+                    <h3>La Tua Squadra (0/8)</h3>
+                    <div id="team-list"></div>
+                </div>
+            </div>
+            <div class="card">
+                <h3>Giocatori Disponibili</h3>
+                <div id="market-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sezione Squadre -->
+    <div id="squadre" class="section">
+        <h2>👥 Tutte le Squadre</h2>
+        <div id="all-teams"></div>
+    </div>
+
+    <!-- Sezione Admin -->
+    <div id="admin" class="section">
+        <h2>⚙️ Pannello Amministrazione</h2>
+        <div class="grid grid-2">
+            <div class="card">
+                <h3>Aggiorna Punteggi</h3>
+                <div class="form-group">
+                    <label>Seleziona Giocatore:</label>
+                    <select id="admin-player-select">
+                        <option value="">Scegli giocatore...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Tipo Evento:</label>
+                    <select id="event-type">
+                        <option value="">Seleziona evento...</option>
+                        <option value="-2">Non mette presenza (-2)</option>
+                        <option value="-5">Bidona domenica (-5)</option>
+                        <option value="-1">Ritardo/uscita anticipata (-1)</option>
+                        <option value="-6">Consiglio disciplinare (-6)</option>
+                        <option value="-2">Assente domenica con avviso (-2)</option>
+                        <option value="-2">Non offre dopo compleanno (-2)</option>
+                        <option value="-5">Sporca il bosco (-5)</option>
+                        <option value="-3">Perde equipaggiamento (-3)</option>
+                        <option value="-3">Assenza radio/scarica (-3)</option>
+                        <option value="-2">Batteria scarica (-2)</option>
+                        <option value="-1">Patch alta visibilità (-1)</option>
+                        <option value="+4">Presente (+4)</option>
+                        <option value="+2">In anticipo organizzazione (+2)</option>
+                        <option value="+3">Silent kill (+3)</option>
+                        <option value="+1">Kill a 1 colpo (+1)</option>
+                        <option value="+5">Cornetti sul campo (+5)</option>
+                        <option value="+6">Cornetti + salmone (+6)</option>
+                        <option value="+7">Cornetti senza lattosio (+7)</option>
+                        <option value="+5">Presenze cumulative (+5)</option>
+                        <option value="+2">Trova equipaggiamento (+2)</option>
+                        <option value="+5">Crea scenografia (+5)</option>
+                        <option value="+3">Crea obiettivo speciale (+3)</option>
+                        <option value="+3">Aiuto manovalanza (+3)</option>
+                        <option value="+2">Convocazione evento (+2)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Punti personalizzati (opzionale):</label>
+                    <input type="number" id="custom-points" placeholder="Es: +5 o -3">
+                </div>
+                <div class="form-group">
+                    <label>Descrizione:</label>
+                    <input type="text" id="event-description" placeholder="Descrizione dell'evento">
+                </div>
+                <button class="btn btn-success" onclick="updatePlayerScore()">Aggiorna Punteggio</button>
+            </div>
+            <div class="card">
+                <h3>Reset Sistema</h3>
+                <p style="margin-bottom: 15px; color: #718096;">
+                    Attenzione: queste operazioni sono irreversibili!
+                </p>
+                <button class="btn btn-danger" onclick="resetSystem('market')">Reset Mercato</button>
+                <button class="btn btn-danger" onclick="resetSystem('scores')">Reset Punteggi</button>
+                <button class="btn btn-danger" onclick="resetSystem('all')">Reset Completo</button>
+            </div>
+        </div>
+        <div class="card">
+            <h3>Storico Eventi</h3>
+            <div id="event-history"></div>
+        </div>
+    </div>
+
+    <div id="alert-container"></div>
+</div>
+
+<!-- Modal di autenticazione -->
+<div id="auth-modal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <h3>🔒 Autenticazione Amministratore</h3>
+        <p>Inserisci la password per accedere alla sezione <span id="protected-section-name"></span>:</p>
+        <form id="auth-form">
+            <div class="form-group">
+                <input type="password" id="admin-password" placeholder="Password amministratore" required>
+            </div>
+            <div class="form-buttons">
+                <button type="submit" class="btn btn-success">Accedi</button>
+                <button type="button" class="btn" onclick="closeAuthModal()">Annulla</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
