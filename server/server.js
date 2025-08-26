@@ -4,7 +4,7 @@ const path = require('path');
 const { initDatabase, getDB } = require('./database');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 80;
 
 // Password amministratore (in un'applicazione reale, questo dovrebbe essere in un file di configurazione sicuro)
 const ADMIN_PASSWORD = "admin123";

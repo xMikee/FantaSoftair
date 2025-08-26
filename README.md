@@ -61,9 +61,9 @@ Vai su: `http://localhost:3000`
 
 ### 🔒 **Sistema di Autenticazione**
 - **Accesso libero**: Classifica e visualizzazione squadre
-- **Password Mercato**: `ateam2024` (per gli associati)
-- **Password Admin**: `admin2024` (per gli amministratori)
+- **Password Admin**: `admin123` (per mercato e amministrazione)
 - **Auto-logout**: Le sessioni scadono alla chiusura del browser
+- **Protezione sezioni**: Mercato e Admin protetti da password
 
 ### 🏆 **Classifica** (Accesso Libero)
 - Classifica in tempo reale basata sui punti totali
@@ -74,14 +74,14 @@ Vai su: `http://localhost:3000`
 - Riepilogo crediti e punti totali
 
 ### 🛒 **Mercato** (Password Protetto)
-- **Password**: `ateam2024`
+- **Password**: `admin123`
 - 1000 crediti iniziali per ogni associato
 - 48 giocatori disponibili (tutti gli associati del club)
 - Valori randomizzati tra 50-250 crediti
 - Sistema acquisto/vendita (vendita al 80%)
 
 ### ⚙️ **Admin Panel** (Password Protetto)
-- **Password**: `admin2024`
+- **Password**: `admin123`
 - Sistema punteggi completo con tutti gli eventi
 - Storico eventi con data e descrizione
 - Reset mercato/punteggi/completo
@@ -180,6 +180,8 @@ CMD ["npm", "start"]
 - `GET /api/users` - Lista associati
 - `GET /api/players` - Lista giocatori
 - `GET /api/ranking` - Classifica
+- `GET /api/events` - Storico eventi
+- `POST /api/authenticate` - Autenticazione amministratore
 - `POST /api/buy-player` - Acquista giocatore
 - `POST /api/sell-player` - Vendi giocatore
 - `POST /api/update-score` - Aggiorna punteggi
@@ -195,17 +197,13 @@ L'app è completamente responsive e funziona su tutti i dispositivi.
 
 ## 🔐 **Sicurezza e Password**
 
-### **Password Predefinite**
-- **Mercato**: `ateam2024` (associati del club)
-- **Admin**: `admin2024` (amministratori)
+### **Password Predefinita**
+- **Password Unica**: `admin123` (per mercato e amministrazione)
 
-### **Cambiare le Password**
+### **Cambiare la Password**
 Modifica il file `server/server.js`:
 ```javascript
-const PASSWORDS = {
-    MARKET: 'tua_password_mercato',     // Password mercato
-    ADMIN: 'tua_password_admin'         // Password admin
-};
+const ADMIN_PASSWORD = "tua_nuova_password";
 ```
 
 ### **Livelli di Accesso**
@@ -213,12 +211,10 @@ const PASSWORDS = {
     - ✅ Visualizzazione classifica
     - ✅ Visualizzazione squadre formate
 
-2. **Associati** (password mercato):
+2. **Amministratori** (password admin):
     - ✅ Accesso al mercato
-    - ✅ Acquisto/vendita giocatori
-    - ✅ Gestione della propria squadra
-
-3. **Admin** (password admin):
+    - ✅ Acquisto/vendita giocatori  
+    - ✅ Gestione delle squadre
     - ✅ Aggiornamento punteggi
     - ✅ Gestione eventi
     - ✅ Reset sistema
