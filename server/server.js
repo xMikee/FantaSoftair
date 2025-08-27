@@ -16,19 +16,20 @@ app.use(express.static(path.join(__dirname, '../public')));
 
 // Lista degli associati
 const associati = [
-    "Carlo Tedesco", "Nicola Maino", "Miki Braná", "Filippo Tafuni",
-    "Bartolo Diele", "Antonio Petrara", "Michele Farella", "Marcantonio Dambrosio",
-    "Carlo Traetta", "Francesco Perrucci", "Michele Picerno", "Antonio Clemente",
-    "Pasquale Tamborra", "Vincenzo Rotunno", "Michele Ardino", "Sandro Squicciarini",
-    "Antonio Robortella", "Giacomo Caserta", "Vincenzo Cisterna", "Antonio Denora",
-    "Francesco Tafuni", "Leonardo Di noya", "Domenico Carone", "Antonio Miglionico",
-    "Vincenzo Cicirelli", "Giuseppe Baldini Anastasio", "Michele Morgese", "Andrea Lauriero",
-    "Nicola Colonna", "Michele Caggiano", "Eleonora Varone", "Tommaso Rinaldi",
-    "Angelo Tragni", "Lorenzo Tritto", "Giovanni Ragone", "Saverio Leone",
-    "Angelo Ostuni", "Pasquale Tragni", "Stefano Maggio", "Claudio Lanza",
-    "Paolo Colonna", "Vito Tafuno", "Giuseppe Monitillo", "Pietro Colonna",
-    "Giovanni Pepe", "Denny Lorusso", "Antonio Picerno", "Adriano Rizzo"
+  "Alessandro Greco", "Luca Ferraro", "Giorgio Santoro", "Enrico Romano",
+  "Matteo Parisi", "Roberto Gallo", "Francesco De Luca", "Andrea Ruggieri",
+  "Davide Benedetti", "Marco Esposito", "Claudio Vitale", "Riccardo Fiore",
+  "Simone Mancini", "Giuseppe Leone", "Antonio Morelli", "Stefano Basile",
+  "Lorenzo D’Amico", "Fabio Montanari", "Carlo Ricci", "Gianni Palmieri",
+  "Daniele Barone", "Alberto Ferri", "Tommaso Marchetti", "Mauro Valentini",
+  "Federico Conti", "Salvatore Longo", "Vincenzo Coppola", "Paolo Gentile",
+  "Nicola Silvestri", "Raffaele Grasso", "Gabriele De Santis", "Michele Pugliese",
+  "Alessio Fabbri", "Giulio Caputo", "Leonardo Caruso", "Pietro Moretti",
+  "Massimo Battaglia", "Domenico Marino", "Giovanni De Angelis", "Angelo Bianco",
+  "Cristian Rinaldi", "Sergio Bianchi", "Emanuele Ferraris", "Antonio Gatti",
+  "Valerio Serra", "Maurizio Fontana", "Ignazio Bellini", "Silvio Costa"
 ];
+
 
 // API Routes
 
