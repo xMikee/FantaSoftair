@@ -50,9 +50,20 @@ body {
     margin-bottom: 30px;
     flex-wrap: wrap;
 }
-
+#all-teams{
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(30rem, 1fr));
+    grid-auto-rows: auto;
+    grid-gap: 1rem;
+}
+#all-teams .card h3{
+    padding-bottom: 5px;
+    border-bottom: 1px solid #e2e8f0;
+    margin-bottom: 10px;
+}
 .nav button {
-    background: linear-gradient(135deg, #92d989 0%, #46e438 100%);
+    background: #7b5a39;
     color: white;
     border: none;
     padding: 15px 30px;
@@ -70,7 +81,7 @@ body {
 }
 
 .nav button.active {
-    background: linear-gradient(45deg, #48bb78, #38a169);
+    background: #a2915e;
 }
 
 .section {
@@ -110,7 +121,7 @@ body {
 .card {
     background: white;
     border-radius: 15px;
-    padding: 20px;
+    padding: 15px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     transition: transform 0.3s ease;
 }
@@ -208,7 +219,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 15px;
+    padding: 5px 15px;
     margin-bottom: 10px;
     background: white;
     border-radius: 10px;
@@ -233,10 +244,12 @@ body {
     max-width: 30px;
 }
 .listplayers{
-    display: flex;
-    flex-wrap: wrap;
     max-height: 200px;
     overflow-y: auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+    grid-auto-rows: auto;
+    grid-gap: 10px;
 }
 .ranking-name {
     font-weight: bold;
@@ -304,13 +317,8 @@ body {
 }
 
 .team-player {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px;
     background: white;
     border-radius: 5px;
-    margin-bottom: 5px;
     transition: background-color 0.2s ease;
 }
 

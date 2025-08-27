@@ -6,15 +6,14 @@ const { initDatabase, getDB } = require('./database');
 const app = express();
 const PORT = process.env.PORT || 80;
 
-// Password amministratore (in un'applicazione reale, questo dovrebbe essere in un file di configurazione sicuro)
 const ADMIN_PASSWORD = "admin123";
 
-// Middleware
+
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '../public')));
 
-// Lista degli associati
+
 const associati = [
     "Carlo Tedesco", "Nicola Maino", "Miki Braná", "Filippo Tafuni",
     "Bartolo Diele", "Antonio Petrara", "Michele Farella", "Marcantonio Dambrosio",
@@ -30,9 +29,7 @@ const associati = [
     "Giovanni Pepe", "Denny Lorusso", "Antonio Picerno", "Adriano Rizzo"
 ];
 
-// API Routes
 
-// GET /api/users - Ottieni tutti gli utenti
 app.get('/api/users', (req, res) => {
     const db = getDB();
     db.all("SELECT * FROM users ORDER BY name", (err, rows) => {
@@ -44,7 +41,6 @@ app.get('/api/users', (req, res) => {
     });
 });
 
-// GET /api/players - Ottieni tutti i giocatori
 app.get('/api/players', (req, res) => {
     const db = getDB();
     const available = req.query.available === 'true';
@@ -71,7 +67,6 @@ app.get('/api/players', (req, res) => {
     });
 });
 
-// GET /api/ranking - Ottieni la classifica
 app.get('/api/ranking', (req, res) => {
     const db = getDB();
     const sql = `
@@ -96,7 +91,6 @@ app.get('/api/ranking', (req, res) => {
     });
 });
 
-// POST /api/buy-player - Acquista un giocatore
 app.post('/api/buy-player', (req, res) => {
     const { userId, playerId } = req.body;
     const db = getDB();
@@ -142,7 +136,6 @@ app.post('/api/buy-player', (req, res) => {
     });
 });
 
-// POST /api/sell-player - Vendi un giocatore
 app.post('/api/sell-player', (req, res) => {
     const { userId, playerId } = req.body;
     const db = getDB();
@@ -164,7 +157,6 @@ app.post('/api/sell-player', (req, res) => {
     });
 });
 
-// POST /api/update-score - Aggiorna punteggio giocatore
 app.post('/api/update-score', (req, res) => {
     const { playerId, points, description } = req.body;
     const db = getDB();
@@ -178,7 +170,6 @@ app.post('/api/update-score', (req, res) => {
     res.json({ success: true, message: `Punteggio aggiornato: ${points > 0 ? '+' : ''}${points} punti!` });
 });
 
-// GET /api/events - Ottieni storico eventi
 app.get('/api/events', (req, res) => {
     const db = getDB();
     const sql = `
@@ -203,7 +194,6 @@ app.get('/api/events', (req, res) => {
     });
 });
 
-// POST /api/authenticate - Autenticazione amministratore
 app.post('/api/authenticate', (req, res) => {
     const { password } = req.body;
     
@@ -219,7 +209,6 @@ app.post('/api/authenticate', (req, res) => {
     }
 });
 
-// POST /api/reset - Reset sistema
 app.post('/api/reset', (req, res) => {
     const { type } = req.body; // 'market', 'scores', 'all'
     const db = getDB();
@@ -245,7 +234,6 @@ app.post('/api/reset', (req, res) => {
     res.json({ success: true, message: 'Reset completato!' });
 });
 
-// Inizializza il database e avvia il server
 initDatabase(associati).then(() => {
     app.listen(PORT, () => {
         console.log(`Fanta Softair A-Team server running on http://localhost:${PORT}`);

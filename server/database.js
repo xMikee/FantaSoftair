@@ -5,14 +5,12 @@ let db;
 
 function initDatabase(associati) {
     return new Promise((resolve, reject) => {
-        // Crea la cartella data se non esiste
         const fs = require('fs');
         const dataDir = path.join(__dirname, '../data');
         if (!fs.existsSync(dataDir)) {
             fs.mkdirSync(dataDir, { recursive: true });
         }
 
-        // Connetti al database
         const dbPath = path.join(__dirname, '../data/fanta-softair.db');
         db = new sqlite3.Database(dbPath, (err) => {
             if (err) {
@@ -22,7 +20,6 @@ function initDatabase(associati) {
             }
             console.log('Connesso al database SQLite');
 
-            // Crea le tabelle
             createTables()
                 .then(() => initializeData(associati))
                 .then(() => {
@@ -37,7 +34,6 @@ function initDatabase(associati) {
 function createTables() {
     return new Promise((resolve, reject) => {
         db.serialize(() => {
-            // Tabella utenti (associati)
             db.run(`
                 CREATE TABLE IF NOT EXISTS users (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -50,7 +46,6 @@ function createTables() {
                 if (err) reject(err);
             });
 
-            // Tabella giocatori (softgunners)
             db.run(`
                 CREATE TABLE IF NOT EXISTS players (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -65,7 +60,6 @@ function createTables() {
                 if (err) reject(err);
             });
 
-            // Tabella eventi
             db.run(`
                 CREATE TABLE IF NOT EXISTS events (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -88,7 +82,6 @@ function createTables() {
 
 function initializeData(associati) {
     return new Promise((resolve, reject) => {
-        // Controlla se i dati sono già stati inizializzati
         db.get("SELECT COUNT(*) as count FROM users", (err, result) => {
             if (err) {
                 reject(err);
@@ -104,17 +97,14 @@ function initializeData(associati) {
             console.log('Inizializzazione dati...');
 
             db.serialize(() => {
-                // Inserisci gli associati come utenti
                 const userStmt = db.prepare("INSERT INTO users (name, credits, total_points) VALUES (?, 1000, 0)");
                 associati.forEach(nome => {
                     userStmt.run(nome);
                 });
                 userStmt.finalize();
 
-                // Crea i giocatori (ogni associato è anche un giocatore disponibile nel mercato)
                 const playerStmt = db.prepare("INSERT INTO players (name, base_value, current_points) VALUES (?, ?, 0)");
                 associati.forEach(nome => {
-                    // Valore casuale tra 50 e 250 crediti
                     const baseValue = Math.floor(Math.random() * 200) + 50;
                     playerStmt.run(nome, baseValue);
                 });

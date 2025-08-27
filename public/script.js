@@ -7,10 +7,8 @@ let events = [];
 let isAuthenticated = false;
 let currentProtectedSection = null;
 
-// API Base URL
 const API_BASE = window.location.origin + '/api';
 
-// Inizializzazione dell'applicazione
 document.addEventListener('DOMContentLoaded', async function() {
     try {
         await loadInitialData();
@@ -24,7 +22,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 });
 
-// Funzioni API
 async function apiCall(endpoint, options = {}) {
     const response = await fetch(`${API_BASE}${endpoint}`, {
         headers: {
@@ -48,7 +45,6 @@ async function loadInitialData() {
     events = await apiCall('/events');
 }
 
-// Funzioni UI
 function hideLoading() {
     document.getElementById('loading').style.display = 'none';
 }
@@ -77,7 +73,6 @@ function updateAdminPlayerSelect() {
     const playerSelect = document.getElementById('admin-player-select');
     playerSelect.innerHTML = '<option value="">Scegli giocatore...</option>';
 
-    // Carica tutti i giocatori per l'admin
     fetch(`${API_BASE}/players`)
         .then(response => response.json())
         .then(allPlayers => {
@@ -108,9 +103,10 @@ function updateClassifica() {
             medalHtml = `<img src="../img/${secondPosition}" alt="2°" class="ranking-med"/>`;
         } else if (index === 2) {
             medalHtml = `<img src="../img/${thirdPosition}" alt="3°" class="ranking-med"/>`;
-        }else{
-            //medalHtml = index+1;
+        }else if (index === ranking.length - 1){
             medalHtml = `<img src="../img/soldato.png" alt="3°" class="ranking-med"/>`;
+        }else{
+            medalHtml = index+1;
         }
         rankingItem.innerHTML = `    
             <div class="ranking-position">${medalHtml}</div>
@@ -245,9 +241,9 @@ function updateEventHistory() {
     eventHistory.appendChild(table);
 }
 
-// Event handlers
 async function onUserSelect() {
     const userId = document.getElementById('user-select').value;
+
     currentUser = userId;
     await updateUserCredits(userId);
     await updateUserTeam(userId);
@@ -341,13 +337,11 @@ async function updatePlayerScore() {
 
         showAlert(result.message, 'success');
 
-        // Reset form
         document.getElementById('admin-player-select').value = '';
         document.getElementById('event-type').value = '';
         document.getElementById('custom-points').value = '';
         document.getElementById('event-description').value = '';
 
-        // Ricarica i dati
         await loadInitialData();
         updateUI();
         updateAdminPlayerSelect();
@@ -386,11 +380,11 @@ async function resetSystem(type) {
 
         showAlert(result.message, 'success');
 
-        // Ricarica tutti i dati
+
         await loadInitialData();
         updateUI();
 
-        // Reset UI locale
+
         currentUser = null;
         document.getElementById('user-select').value = '';
         document.getElementById('user-credits').style.display = 'none';
@@ -401,9 +395,9 @@ async function resetSystem(type) {
     }
 }
 
-// Gestione sezioni
+
 function showSection(sectionName) {
-    // Controlla se la sezione richiede autenticazione
+
     if (isProtectedSection(sectionName) && !isAuthenticated) {
         showAuthModal(sectionName);
         return;
@@ -459,7 +453,7 @@ function showAlert(message, type = 'success') {
 
     alertContainer.appendChild(alert);
 
-    // Rimuovi l'alert dopo 3 secondi
+
     setTimeout(() => {
         if (alertContainer.contains(alert)) {
             alertContainer.removeChild(alert);
@@ -467,7 +461,7 @@ function showAlert(message, type = 'success') {
     }, 3000);
 }
 
-// Funzioni di autenticazione
+
 function showAuthModal(sectionName) {
     currentProtectedSection = sectionName;
     const modal = document.getElementById('auth-modal');
@@ -475,8 +469,7 @@ function showAuthModal(sectionName) {
     
     sectionNameSpan.textContent = sectionName === 'mercato' ? 'Mercato' : 'Admin';
     modal.style.display = 'flex';
-    
-    // Focus sul campo password
+
     setTimeout(() => {
         document.getElementById('admin-password').focus();
     }, 100);
@@ -488,7 +481,7 @@ function closeAuthModal() {
     currentProtectedSection = null;
     document.getElementById('admin-password').value = '';
     
-    // Riattiva il pulsante classifica
+
     showSection('classifica');
 }
 
@@ -524,32 +517,25 @@ function isProtectedSection(sectionName) {
     return sectionName === 'mercato' || sectionName === 'admin';
 }
 
-// Versione diretta della funzione showSection (senza controlli di autenticazione)
 function showSectionDirect(sectionName) {
-    // Nasconde tutte le sezioni
     document.querySelectorAll('.section').forEach(section => {
         section.classList.remove('active');
     });
 
-    // Rimuove la classe active da tutti i pulsanti
     document.querySelectorAll('.nav-btn').forEach(btn => {
         btn.classList.remove('active');
     });
 
-    // Mostra la sezione selezionata
     document.getElementById(sectionName).classList.add('active');
 
-    // Attiva il pulsante corrispondente
     const targetBtn = document.querySelector(`[onclick="showSection('${sectionName}')"]`);
     if (targetBtn) {
         targetBtn.classList.add('active');
     }
 
-    // Aggiorna contenuti specifici per sezione
     if (sectionName === 'squadre') {
         updateAllTeams();
     } else if (sectionName === 'classifica') {
-        // Ricarica la classifica per avere dati aggiornati
         apiCall('/ranking').then(data => {
             ranking = data;
             updateClassifica();
@@ -557,10 +543,8 @@ function showSectionDirect(sectionName) {
     }
 }
 
-// Event listeners
 document.getElementById('user-select').addEventListener('change', onUserSelect);
 
-// Event listener per il form di autenticazione
 document.getElementById('auth-form').addEventListener('submit', async function(e) {
     e.preventDefault();
     const password = document.getElementById('admin-password').value;
