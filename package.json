@@ -1,7 +1,7 @@
 {
   "name": "fanta-softair-ateam",
   "version": "1.0.0",
-  "description": "Sistema Fantasy Softair per il club A-Team",
+  "description": "Sistema Fantasy Softair per il club",
   "main": "server/server.js",
   "scripts": {
     "start": "node server/server.js",

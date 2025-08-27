@@ -1,6 +1,6 @@
-# 🎯 Fanta Softair A-Team
+# 🎯 Fanta Softair
 
-Sistema di gestione fantasy per il club A-Team con mercato giocatori, punteggi e classifiche.
+Sistema di gestione fantasy per il club con mercato giocatori, punteggi e classifiche.
 
 ## 🚀 Setup Rapido
 
@@ -233,10 +233,10 @@ E implementa:
 - Rate limiting per login tentativi
 
 ## 📞 **Supporto**
-Per problemi o miglioramenti, contatta l'admin del club A-Team!
+Per problemi o miglioramenti, contatta l'admin del club!
 
 ---
-*Buona fortuna con il Fanta Softair A-Team! 🎯*
+*Buona fortuna con il Fanta Softair! 🎯*
 
 ## 🎯 **Quick Start Commands**
 
@@ -263,7 +263,6 @@ git clone [your-repo] fanta-softair-ateam && cd fanta-softair-ateam && npm insta
 - [ ] **API Rate Limiting**: Protezione da abusi
 - [ ] **Backup Automatico**: Salvataggi programmati
 - [ ] **Monitoring**: Log e metriche sistema
-- [ ] **Docker Compose**: Deploy semplificato
 
 ## 🐛 **Troubleshooting**
 
@@ -336,14 +335,6 @@ Modifica `public/style.css`:
 }
 ```
 
-### **Aggiungere Logo Club**
-In `public/index.html`:
-```html
-<div class="header">
-    <img src="logo-ateam.png" alt="A-Team Logo" class="logo">
-    <h1>🎯 Fanta Softair A-Team</h1>
-</div>
-```
 
 ### **Personalizzare Punteggi**
 Modifica array eventi in `server/server.js` e `public/index.html`.
@@ -439,7 +430,7 @@ self.addEventListener('install', (event) => {
 Crea `public/manifest.json`:
 ```json
 {
-  "name": "Fanta Softair A-Team",
+  "name": "Fanta Softair",
   "short_name": "FantaSoftair",
   "start_url": "/",
   "display": "standalone",
@@ -496,7 +487,7 @@ npm install node-telegram-bot-api
 
 ## 🎉 **Conclusione**
 
-Hai ora un sistema completo per il Fanta Softair del club A-Team! Il sistema è:
+Hai ora un sistema completo per il Fanta Softair del club! Il sistema è:
 
 ✅ **Completo**: Mercato, punteggi, classifiche, admin panel
 ✅ **Scalabile**: Architettura modulare e estendibile  
@@ -512,6 +503,6 @@ Hai ora un sistema completo per il Fanta Softair del club A-Team! Il sistema è:
 5. **Feedback**: Raccogli feedback dagli associati
 6. **Iterate**: Migliora basandoti sull'uso reale
 
-**Buona fortuna con il Fanta Softair A-Team! 🎯🏆**
+**Buona fortuna con il Fanta Softair! 🎯🏆**
 
-*"Il gioco è più bello quando tutti partecipano!"* - A-Team Club
+*"Il gioco è più bello quando tutti partecipano!"*
