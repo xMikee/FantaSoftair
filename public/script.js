@@ -419,7 +419,7 @@ async function updateAllTeams() {
             const teamCard = document.createElement('div');
             teamCard.className = 'card';
 
-            let playersList = '<p>Nessun giocatore</p>';
+            let playersList = '<p style="color:darkred">Nessun giocatore</p>';
             if (userPlayers.length > 0) {
                 playersList = userPlayers.map(p =>
                     `<div class="team-player"><span>${p.name} (${p.current_points} pts)</span></div>`

@@ -320,6 +320,7 @@ body {
     background: white;
     border-radius: 5px;
     transition: background-color 0.2s ease;
+    padding: 5px;
 }
 
 .team-player:hover {
