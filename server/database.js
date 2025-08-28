@@ -21,6 +21,7 @@ function initDatabase(associati) {
             console.log('Connesso al database SQLite');
 
             createTables()
+                .then(() => runMigrations())
                 .then(() => initializeData(associati))
                 .then(() => {
                     console.log('Database inizializzato con successo');
@@ -73,6 +74,49 @@ function createTables() {
                 if (err) {
                     reject(err);
                 } else {
+                    resolve();
+                }
+            });
+        });
+    });
+}
+
+function runMigrations() {
+    return new Promise((resolve, reject) => {
+        console.log('Esecuzione migrazioni database...');
+        
+        // Verifica se la colonna selected_for_lineup esiste già
+        db.get("PRAGMA table_info(players)", (err, result) => {
+            if (err) {
+                reject(err);
+                return;
+            }
+            
+            // Controlla se la colonna esiste
+            db.all("PRAGMA table_info(players)", (err, columns) => {
+                if (err) {
+                    reject(err);
+                    return;
+                }
+                
+                const hasSelectedColumn = columns.some(col => col.name === 'selected_for_lineup');
+                
+                if (!hasSelectedColumn) {
+                    console.log('Aggiunta colonna selected_for_lineup alla tabella players...');
+                    db.run(`
+                        ALTER TABLE players 
+                        ADD COLUMN selected_for_lineup INTEGER DEFAULT 0
+                    `, (err) => {
+                        if (err) {
+                            console.error('Errore aggiunta colonna:', err);
+                            reject(err);
+                        } else {
+                            console.log('Colonna selected_for_lineup aggiunta con successo');
+                            resolve();
+                        }
+                    });
+                } else {
+                    console.log('Colonna selected_for_lineup già esistente');
                     resolve();
                 }
             });

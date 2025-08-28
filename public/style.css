@@ -358,6 +358,12 @@ body {
     border: 1px solid #feb2b2;
 }
 
+.alert-info {
+    background: #bee3f8;
+    color: #2c5282;
+    border: 1px solid #90cdf4;
+}
+
 #alert-container {
     position: fixed;
     top: 20px;
@@ -544,4 +550,84 @@ body {
         width: 100%;
         margin-bottom: 10px;
     }
+}
+
+/* Lineup Management Styles */
+.team-player {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 12px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.team-player:hover {
+    background: rgba(255, 255, 255, 1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.team-player input[type="checkbox"] {
+    margin-right: 10px;
+    transform: scale(1.2);
+}
+
+.team-player label {
+    cursor: pointer;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.lineup-controls {
+    margin-top: 20px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.lineup-controls .btn {
+    margin: 0 10px 10px 0;
+}
+
+.lineup-controls p {
+    color: #718096;
+    font-style: italic;
+    margin-top: 10px;
+}
+
+.lineup-info {
+    background: rgba(102, 126, 234, 0.1);
+    border: 1px solid rgba(102, 126, 234, 0.3);
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 20px;
+    color: #667eea;
+    font-weight: 500;
+    text-align: center;
+}
+
+.selected-badge, .bench-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.selected-badge {
+    background: rgba(72, 187, 120, 0.2);
+    color: #48bb78;
+    border: 1px solid #48bb78;
+}
+
+.bench-badge {
+    background: rgba(160, 174, 192, 0.2);
+    color: #a0aec0;
+    border: 1px solid #a0aec0;
 }
