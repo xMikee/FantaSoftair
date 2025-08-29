@@ -23,15 +23,23 @@ export class MarketService {
       throw new BadRequestException('Utente non trovato');
     }
 
-    const player = await this.playersRepository.findOne({
-      where: { id: playerId, ownerId: null }
+    const originalPlayer = await this.playersRepository.findOne({
+      where: { id: playerId }
     });
     
-    if (!player) {
-      throw new BadRequestException('Giocatore non disponibile');
+    if (!originalPlayer) {
+      throw new BadRequestException('Giocatore non trovato');
     }
 
-    if (user.credits < player.baseValue) {
+    const existingPlayer = await this.playersRepository.findOne({
+      where: { name: originalPlayer.name, ownerId: targetUserId }
+    });
+
+    if (existingPlayer) {
+      throw new BadRequestException('Giocatore già presente nella squadra');
+    }
+
+    if (user.credits < originalPlayer.baseValue) {
       throw new BadRequestException('Crediti insufficienti per questa squadra');
     }
 
@@ -40,15 +48,25 @@ export class MarketService {
       throw new BadRequestException('Squadra completa (11 giocatori max)');
     }
 
-    await this.playersService.updateOwner(playerId, targetUserId);
-    await this.usersService.adjustCredits(targetUserId, -player.baseValue);
+    const newPlayer = this.playersRepository.create({
+      name: originalPlayer.name,
+      baseValue: originalPlayer.baseValue,
+      currentPoints: originalPlayer.currentPoints,
+      ownerId: targetUserId,
+      selectedForLineup: false,
+      isInFormation: false,
+      position: originalPlayer.position
+    });
+
+    await this.playersRepository.save(newPlayer);
+    await this.usersService.adjustCredits(targetUserId, -originalPlayer.baseValue);
 
     return {
       success: true,
       message: `Giocatore acquistato con successo per ${user.name}!`,
-      playerName: player.name,
+      playerName: originalPlayer.name,
       teamName: user.name,
-      cost: player.baseValue
+      cost: originalPlayer.baseValue
     };
   }
 

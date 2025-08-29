@@ -10,6 +10,33 @@ export class PlayersService {
     private playersRepository: Repository<Player>,
   ) {}
 
+  private async updateOwnerTotalPoints(ownerId: number): Promise<void> {
+    if (!ownerId) return;
+
+    console.log(`Updating total points for user ${ownerId}...`);
+
+    const result = await this.playersRepository
+      .createQueryBuilder('player')
+      .select('COALESCE(SUM(player.currentPoints), 0)', 'totalPoints')
+      .where('player.ownerId = :ownerId AND player.selectedForLineup = :selected', { 
+        ownerId, 
+        selected: true 
+      })
+      .getRawOne();
+
+    const totalPoints = parseInt(result.totalPoints) || 0;
+    console.log(`Calculated total points: ${totalPoints} for user ${ownerId}`);
+
+    const updateResult = await this.playersRepository.manager
+      .createQueryBuilder()
+      .update('users')
+      .set({ total_points: totalPoints })
+      .where('id = :ownerId', { ownerId })
+      .execute();
+    
+    console.log(`Update result for user ${ownerId}:`, updateResult);
+  }
+
   async findAll(available?: boolean, userId?: number): Promise<Player[]> {
     const queryBuilder = this.playersRepository.createQueryBuilder('player');
     
@@ -24,6 +51,12 @@ export class PlayersService {
     return queryBuilder.getMany();
   }
 
+  async getTemplatePlayersForMarket(): Promise<Player[]> {
+    return this.playersRepository.find({
+      where: { ownerId: null }
+    });
+  }
+
   async findOne(id: number): Promise<Player> {
     return this.playersRepository.findOne({ where: { id } });
   }
@@ -33,7 +66,16 @@ export class PlayersService {
   }
 
   async updatePoints(id: number, points: number): Promise<void> {
+    const player = await this.playersRepository.findOne({ where: { id } });
+    if (!player) {
+      throw new Error('Player not found');
+    }
+
     await this.playersRepository.increment({ id }, 'currentPoints', points);
+    
+    if (player.ownerId) {
+      await this.updateOwnerTotalPoints(player.ownerId);
+    }
   }
 
   async resetOwnership(): Promise<void> {
@@ -57,7 +99,16 @@ export class PlayersService {
   }
 
   async updateLineupSelection(playerId: number, selected: boolean): Promise<void> {
+    const player = await this.playersRepository.findOne({ where: { id: playerId } });
+    if (!player) {
+      throw new Error('Player not found');
+    }
+
     await this.playersRepository.update(playerId, { selectedForLineup: selected });
+    
+    if (player.ownerId) {
+      await this.updateOwnerTotalPoints(player.ownerId);
+    }
   }
 
   async getSelectedLineup(userId: number): Promise<Player[]> {
@@ -75,5 +126,19 @@ export class PlayersService {
   async resetLineupSelections(userId?: number): Promise<void> {
     const whereCondition = userId ? { ownerId: userId } : {};
     await this.playersRepository.update(whereCondition, { selectedForLineup: false });
+    
+    if (userId) {
+      await this.updateOwnerTotalPoints(userId);
+    } else {
+      const users = await this.playersRepository
+        .createQueryBuilder('player')
+        .select('DISTINCT player.ownerId', 'ownerId')
+        .where('player.ownerId IS NOT NULL')
+        .getRawMany();
+      
+      for (const user of users) {
+        await this.updateOwnerTotalPoints(user.ownerId);
+      }
+    }
   }
 }
