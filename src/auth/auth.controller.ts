@@ -18,31 +18,23 @@ export class AuthController {
   }
 
   @Post('login')
-  @ApiOperation({ summary: 'Login user by name and password' })
+  @ApiOperation({ summary: 'Login user by name' })
   @ApiResponse({ status: 200, description: 'User login successful' })
-  @ApiResponse({ status: 401, description: 'User not found or wrong password' })
-  async loginUser(@Body() body: { userName: string, password?: string }) {
-    return this.authService.loginUser(body.userName, body.password || '');
+  @ApiResponse({ status: 401, description: 'User not found' })
+  async loginUser(@Body() body: { userName: string }) {
+    return this.authService.loginUser(body.userName);
   }
 
-  @Post('set-password')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Set user password' })
-  @ApiResponse({ status: 200, description: 'Password set successfully' })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  async setPassword(@Request() req, @Body() body: { password: string }) {
-    return this.authService.setUserPassword(req.user.id, body.password);
-  }
+  // Password management endpoints removed
 
-  @Post('get-all-passwords')
-  @ApiOperation({ summary: 'Get all user passwords (admin only)' })
-  @ApiResponse({ status: 200, description: 'All passwords retrieved' })
+  @Post('get-all-users')
+  @ApiOperation({ summary: 'Get all users (admin only)' })
+  @ApiResponse({ status: 200, description: 'All users retrieved' })
   @ApiResponse({ status: 401, description: 'Invalid admin password' })
-  async getAllPasswords(@Body() body: { adminPassword: string }) {
+  async getAllUsers(@Body() body: { adminPassword: string }) {
     if (body.adminPassword !== 'admin123') {
       throw new UnauthorizedException('Password admin non corretta');
     }
-    return this.authService.getAllUserPasswords();
+    return this.authService.getAllUsers();
   }
 }

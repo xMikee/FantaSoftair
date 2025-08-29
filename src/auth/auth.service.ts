@@ -33,19 +33,13 @@ export class AuthService {
     return password === this.ADMIN_PASSWORD;
   }
 
-  async loginUser(userName: string, password: string) {
+  async loginUser(userName: string) {
     const user = await this.usersRepository.findOne({
       where: { name: userName }
     });
 
     if (!user) {
       throw new UnauthorizedException('Utente non trovato');
-    }
-
-    // If user has no password set, allow login (for backward compatibility)
-    // Otherwise, validate the password
-    if (user.password && user.password !== password) {
-      throw new UnauthorizedException('Password non corretta');
     }
 
     const payload = { userId: user.id, userName: user.name };
@@ -58,29 +52,12 @@ export class AuthService {
       user: {
         id: user.id,
         name: user.name,
-        credits: user.credits,
-        hasPassword: !!user.password
+        credits: user.credits
       }
     };
   }
 
-  async setUserPassword(userId: number, newPassword: string) {
-    const user = await this.usersRepository.findOne({
-      where: { id: userId }
-    });
-
-    if (!user) {
-      throw new UnauthorizedException('Utente non trovato');
-    }
-
-    user.password = newPassword;
-    await this.usersRepository.save(user);
-
-    return {
-      success: true,
-      message: 'Password impostata con successo'
-    };
-  }
+  // Password management removed - not needed for this application
 
   async validateUserToken(payload: any): Promise<any> {
     const user = await this.usersRepository.findOne({
@@ -94,9 +71,9 @@ export class AuthService {
     return user;
   }
 
-  async getAllUserPasswords() {
+  async getAllUsers() {
     const users = await this.usersRepository.find({
-      select: ['id', 'name', 'password'],
+      select: ['id', 'name'],
       order: { name: 'ASC' }
     });
 
@@ -104,8 +81,7 @@ export class AuthService {
       success: true,
       users: users.map(user => ({
         id: user.id,
-        name: user.name,
-        password: user.password || 'Nessuna password'
+        name: user.name
       }))
     };
   }

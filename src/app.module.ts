@@ -11,9 +11,10 @@ import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
+    // Serve static files from public directory
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'public'),
-      exclude: ['/api*'],
+      serveRoot: '/',
     }),
     DatabaseModule,
     AuthModule,
@@ -23,5 +24,7 @@ import { AdminModule } from './admin/admin.module';
     EventsModule,
     AdminModule,
   ],
+  controllers: [],
+  providers: [],
 })
 export class AppModule {}

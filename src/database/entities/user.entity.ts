@@ -9,9 +9,6 @@ export class User {
   @Column({ unique: true })
   name: string;
 
-  @Column({ nullable: true })
-  password: string;
-
   @Column({ default: 1000 })
   credits: number;
 
