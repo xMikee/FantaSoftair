@@ -269,7 +269,10 @@ function updateClassifica() {
     let secondPosition = 'colonnello.png';
     let thirdPosition = 'capitano.png';
 
+
+
     ranking.forEach((user, index) => {
+
         const rankingItem = document.createElement('div');
         rankingItem.className = 'ranking-item';
         let medalHtml = '';

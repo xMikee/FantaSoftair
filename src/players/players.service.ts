@@ -10,34 +10,35 @@ export class PlayersService {
     private playersRepository: Repository<Player>,
   ) {}
 
-  private async updateOwnerTotalPoints(ownerId: number): Promise<void> {
-    if (!ownerId) return;
+    private async updateOwnerTotalPoints(ownerId: number): Promise<void> {
+        if (!ownerId) return;
 
-    console.log(`Updating total points for user ${ownerId}...`);
+        console.log(`Updating total points for user ${ownerId}...`);
 
-    const result = await this.playersRepository
-      .createQueryBuilder('player')
-      .select('COALESCE(SUM(player.currentPoints), 0)', 'totalPoints')
-      .where('player.ownerId = :ownerId AND player.selectedForLineup = :selected', { 
-        ownerId, 
-        selected: true 
-      })
-      .getRawOne();
+        // Calcolo dei punti totali del giocatore
+        const result = await this.playersRepository
+            .createQueryBuilder('player')
+            .select('COALESCE(SUM(player.currentPoints), 0)', 'totalPoints')
+            .where('player.ownerId = :ownerId', { ownerId })
+            .andWhere('player.selectedForLineup = :selected', { selected: true })
+            .getRawOne<{ totalPoints: string }>();
 
-    const totalPoints = parseInt(result.totalPoints) || 0;
-    console.log(`Calculated total points: ${totalPoints} for user ${ownerId}`);
+        const totalPoints = Number(result?.totalPoints ?? 0);
+        console.log(`Calculated total points: ${totalPoints} for user ${ownerId}`);
 
-    const updateResult = await this.playersRepository.manager
-      .createQueryBuilder()
-      .update('users')
-      .set({ total_points: totalPoints })
-      .where('id = :ownerId', { ownerId })
-      .execute();
-    
-    console.log(`Update result for user ${ownerId}:`, updateResult);
-  }
+        // Aggiornamento del campo total_points nella tabella users
+        const updateResult = await this.playersRepository.manager
+            .createQueryBuilder()
+            .update('users')
+            .set({ totalPoints })
+            .where('id = :ownerId', { ownerId })
+            .execute();
 
-  async findAll(available?: boolean, userId?: number): Promise<Player[]> {
+        console.log(`Update result for user ${ownerId}:`, updateResult);
+    }
+
+
+    async findAll(available?: boolean, userId?: number): Promise<Player[]> {
     const queryBuilder = this.playersRepository.createQueryBuilder('player');
     
     if (available) {
@@ -71,9 +72,26 @@ export class PlayersService {
       throw new Error('Player not found');
     }
 
-    await this.playersRepository.increment({ id }, 'currentPoints', points);
-    
-    if (player.ownerId) {
+    // If it's a template player (no owner), update all players with the same name
+    if (!player.ownerId) {
+      await this.playersRepository.increment({ name: player.name }, 'currentPoints', points);
+      
+      // Update total points for all owners of players with this name  
+      const ownedPlayers = await this.playersRepository
+        .createQueryBuilder('player')
+        .where('player.name = :name', { name: player.name })
+        .andWhere('player.ownerId IS NOT NULL')
+        .getMany();
+      
+      const ownerIds = [...new Set(ownedPlayers.map(p => p.ownerId))];
+      for (const ownerId of ownerIds) {
+        if (ownerId) {
+          await this.updateOwnerTotalPoints(ownerId);
+        }
+      }
+    } else {
+      // If it's an owned player, update just this player
+      await this.playersRepository.increment({ id }, 'currentPoints', points);
       await this.updateOwnerTotalPoints(player.ownerId);
     }
   }

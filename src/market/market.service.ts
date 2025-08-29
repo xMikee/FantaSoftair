@@ -102,17 +102,17 @@ export class MarketService {
     const result = await this.usersRepository
       .createQueryBuilder('user')
       .leftJoin('user.players', 'player')
-      .leftJoin('user.players', 'selectedPlayer', 'selectedPlayer.selectedForLineup = :selected', { selected: true })
       .select('user.id', 'id')
       .addSelect('user.name', 'name')
       .addSelect('user.credits', 'credits')
-      .addSelect('COALESCE(SUM(CASE WHEN selectedPlayer.selectedForLineup = :selected THEN selectedPlayer.currentPoints ELSE 0 END), 0)', 'total_points')
+      .addSelect('user.totalPoints', 'total_points')
       .addSelect('COUNT(player.id)', 'team_size')
-      .addSelect('COUNT(CASE WHEN selectedPlayer.selectedForLineup = :selected THEN 1 END)', 'lineup_size')
+      .addSelect('COUNT(CASE WHEN player.selectedForLineup = :selected THEN 1 END)', 'lineup_size')
       .setParameter('selected', true)
       .groupBy('user.id')
       .addGroupBy('user.name')
-      .orderBy('total_points', 'DESC')
+      .addGroupBy('user.totalPoints')
+      .orderBy('user.totalPoints', 'DESC')
       .getRawMany();
 
     return result;
