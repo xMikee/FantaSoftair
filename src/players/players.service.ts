@@ -37,11 +37,19 @@ export class PlayersService {
   }
 
   async resetOwnership(): Promise<void> {
-    await this.playersRepository.update({}, { ownerId: null });
+    await this.playersRepository
+      .createQueryBuilder()
+      .update()
+      .set({ ownerId: null })
+      .execute();
   }
 
   async resetPoints(): Promise<void> {
-    await this.playersRepository.update({}, { currentPoints: 0 });
+    await this.playersRepository
+      .createQueryBuilder()
+      .update()
+      .set({ currentPoints: 0 })
+      .execute();
   }
 
   async countByOwner(ownerId: number): Promise<number> {

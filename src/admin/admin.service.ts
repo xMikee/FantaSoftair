@@ -32,29 +32,45 @@ export class AdminService {
   }
 
   async resetSystem(type: 'market' | 'scores' | 'all') {
-    switch (type) {
-      case 'market':
-        await this.playersService.resetOwnership();
-        await this.usersRepository.update({}, { credits: 1000 });
-        break;
-        
-      case 'scores':
-        await this.playersService.resetPoints();
-        await this.eventsService.deleteAll();
-        break;
-        
-      case 'all':
-        await this.eventsService.deleteAll();
-        await this.playersService.resetPoints();
-        await this.playersService.resetOwnership();
-        await this.usersRepository.update({}, { credits: 1000, totalPoints: 0 });
-        break;
-    }
+    try {
+      switch (type) {
+        case 'market':
+          await this.playersService.resetOwnership();
+          await this.usersRepository
+            .createQueryBuilder()
+            .update()
+            .set({ credits: 1000 })
+            .execute();
+          break;
+          
+        case 'scores':
+          await this.playersService.resetPoints();
+          await this.eventsService.deleteAll();
+          break;
+          
+        case 'all':
+          await this.eventsService.deleteAll();
+          await this.playersService.resetPoints();
+          await this.playersService.resetOwnership();
+          await this.usersRepository
+            .createQueryBuilder()
+            .update()
+            .set({ credits: 1000, totalPoints: 0 })
+            .execute();
+          break;
+          
+        default:
+          throw new Error(`Invalid reset type: ${type}`);
+      }
 
-    return {
-      success: true,
-      message: 'Reset completato!'
-    };
+      return {
+        success: true,
+        message: 'Reset completato!'
+      };
+    } catch (error) {
+      console.error('Error in resetSystem:', error);
+      throw error;
+    }
   }
 
   async generateTeamPasswords() {

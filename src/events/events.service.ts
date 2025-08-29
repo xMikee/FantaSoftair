@@ -46,6 +46,9 @@ export class EventsService {
   }
 
   async deleteAll(): Promise<void> {
-    await this.eventsRepository.delete({});
+    await this.eventsRepository
+      .createQueryBuilder()
+      .delete()
+      .execute();
   }
 }

@@ -18,10 +18,17 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Check if user is already logged in
         const savedToken = localStorage.getItem('userToken');
         const savedUserInfo = localStorage.getItem('currentUserInfo');
+        const savedAdminPassword = localStorage.getItem('adminPassword');
         
         if (savedToken && savedUserInfo) {
             userToken = savedToken;
             currentUserInfo = JSON.parse(savedUserInfo);
+        }
+        
+        // Restore admin authentication if available
+        if (savedAdminPassword) {
+            adminPassword = savedAdminPassword;
+            isAuthenticated = true;
         }
 
         await loadInitialData();
@@ -679,10 +686,10 @@ async function updatePlayerScore() {
     }
 
     try {
-        const result = await apiCall('/update-score', {
+        const result = await adminApiCall('/update-score', {
             method: 'POST',
             body: JSON.stringify({
-                playerId: playerId,
+                playerId: parseInt(playerId),
                 points: points,
                 description: description || 'Evento registrato dall\'admin'
             })
@@ -726,7 +733,7 @@ async function resetSystem(type) {
     }
 
     try {
-        const result = await apiCall('/reset', {
+        const result = await adminApiCall('/reset', {
             method: 'POST',
             body: JSON.stringify({ type: type })
         });
@@ -932,7 +939,10 @@ function showSectionDirect(sectionName) {
         btn.classList.remove('active');
     });
 
-    document.getElementById(sectionName).classList.add('active');
+    const sectionElement = document.getElementById(sectionName);
+    if (sectionElement) {
+        sectionElement.classList.add('active');
+    }
 
     const targetBtn = document.querySelector(`[onclick="showSection('${sectionName}')"]`);
     if (targetBtn) {
