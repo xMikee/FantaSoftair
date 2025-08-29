@@ -111,7 +111,7 @@ body {
 }
 
 .grid-2 {
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(540px, 1fr));
 }
 
 .grid-3 {
@@ -244,7 +244,7 @@ body {
     max-width: 30px;
 }
 .listplayers{
-    max-height: 200px;
+    max-height: 250px;
     overflow-y: auto;
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
@@ -323,9 +323,9 @@ body {
     padding: 5px;
 }
 
-.team-player:hover {
+/*.team-player:hover {
     background-color: #edf2f7;
-}
+}*/
 
 .loading {
     text-align: center;
@@ -557,18 +557,11 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 15px;
-    background: rgba(255, 255, 255, 0.9);
+    padding: 5px;
     border-radius: 12px;
-    margin-bottom: 10px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s ease;
+    margin-bottom: 0;
 }
 
-.team-player:hover {
-    background: rgba(255, 255, 255, 1);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
 
 .team-player input[type="checkbox"] {
     margin-right: 10px;

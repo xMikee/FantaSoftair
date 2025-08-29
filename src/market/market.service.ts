@@ -17,8 +17,8 @@ export class MarketService {
     private playersService: PlayersService,
   ) {}
 
-  async buyPlayer(userId: number, playerId: number) {
-    const user = await this.usersService.findOne(userId);
+  async buyPlayerForTeam(targetUserId: number, playerId: number) {
+    const user = await this.usersService.findOne(targetUserId);
     if (!user) {
       throw new BadRequestException('Utente non trovato');
     }
@@ -32,40 +32,51 @@ export class MarketService {
     }
 
     if (user.credits < player.baseValue) {
-      throw new BadRequestException('Crediti insufficienti');
+      throw new BadRequestException('Crediti insufficienti per questa squadra');
     }
 
-    const teamSize = await this.playersService.countByOwner(userId);
+    const teamSize = await this.playersService.countByOwner(targetUserId);
     if (teamSize >= 11) {
       throw new BadRequestException('Squadra completa (11 giocatori max)');
     }
 
-    await this.playersService.updateOwner(playerId, userId);
-    await this.usersService.adjustCredits(userId, -player.baseValue);
+    await this.playersService.updateOwner(playerId, targetUserId);
+    await this.usersService.adjustCredits(targetUserId, -player.baseValue);
 
     return {
       success: true,
-      message: 'Giocatore acquistato con successo!'
+      message: `Giocatore acquistato con successo per ${user.name}!`,
+      playerName: player.name,
+      teamName: user.name,
+      cost: player.baseValue
     };
   }
 
-  async sellPlayer(userId: number, playerId: number) {
+  async sellPlayerFromTeam(targetUserId: number, playerId: number) {
     const player = await this.playersRepository.findOne({
-      where: { id: playerId, ownerId: userId }
+      where: { id: playerId, ownerId: targetUserId }
     });
 
     if (!player) {
-      throw new BadRequestException('Giocatore non trovato nella tua squadra');
+      throw new BadRequestException('Giocatore non trovato nella squadra specificata');
+    }
+
+    const user = await this.usersService.findOne(targetUserId);
+    if (!user) {
+      throw new BadRequestException('Utente non trovato');
     }
 
     const sellValue = Math.floor(player.baseValue * 0.8);
 
     await this.playersService.updateOwner(playerId, null);
-    await this.usersService.adjustCredits(userId, sellValue);
+    await this.usersService.adjustCredits(targetUserId, sellValue);
 
     return {
       success: true,
-      message: `Giocatore venduto per ${sellValue} crediti!`
+      message: `Giocatore ${player.name} venduto dalla squadra ${user.name} per ${sellValue} crediti!`,
+      playerName: player.name,
+      teamName: user.name,
+      sellValue: sellValue
     };
   }
 

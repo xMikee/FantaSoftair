@@ -18,11 +18,11 @@ export class AuthController {
   }
 
   @Post('login')
-  @ApiOperation({ summary: 'Login user by name' })
+  @ApiOperation({ summary: 'Login user by name and password' })
   @ApiResponse({ status: 200, description: 'User login successful' })
-  @ApiResponse({ status: 401, description: 'User not found' })
-  async loginUser(@Body() body: { userName: string }) {
-    return this.authService.loginUser(body.userName);
+  @ApiResponse({ status: 401, description: 'Invalid credentials' })
+  async loginUser(@Body() body: { userName: string, password: string }) {
+    return this.authService.loginUser(body.userName, body.password);
   }
 
   // Password management endpoints removed
@@ -36,5 +36,16 @@ export class AuthController {
       throw new UnauthorizedException('Password admin non corretta');
     }
     return this.authService.getAllUsers();
+  }
+
+  @Post('get-all-passwords')
+  @ApiOperation({ summary: 'Get all user passwords (admin only)' })
+  @ApiResponse({ status: 200, description: 'All passwords retrieved' })
+  @ApiResponse({ status: 401, description: 'Invalid admin password' })
+  async getAllPasswords(@Body() body: { adminPassword: string }) {
+    if (body.adminPassword !== 'admin123') {
+      throw new UnauthorizedException('Password admin non corretta');
+    }
+    return this.authService.getAllPasswords();
   }
 }

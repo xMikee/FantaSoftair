@@ -22,6 +22,12 @@ export class Player {
   @Column({ default: false, name: 'selected_for_lineup' })
   selectedForLineup: boolean;
 
+  @Column({ default: false, name: 'is_in_formation' })
+  isInFormation: boolean;
+
+  @Column({ nullable: true })
+  position: string;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 

@@ -9,6 +9,7 @@ let currentProtectedSection = null;
 let userToken = null;
 let currentUserInfo = null;
 let selectedUserForLogin = null;
+let adminPassword = null;
 
 const API_BASE = window.location.origin + '/api';
 
@@ -28,16 +29,19 @@ document.addEventListener('DOMContentLoaded', async function() {
         
         // Restore logged-in user state
         if (currentUserInfo) {
-            document.getElementById('my-user-select').value = currentUserInfo.id;
-            await updateMyUserCredits(currentUserInfo.id);
-            await updateMyUserTeam(currentUserInfo.id);
+            const myUserSelect = document.getElementById('my-user-select');
+            if (myUserSelect) {
+                myUserSelect.value = currentUserInfo.id;
+                await updateMyUserCredits(currentUserInfo.id);
+                await updateMyUserTeam(currentUserInfo.id);
+            }
         }
         
         hideLoading();
         showAlert('Applicazione caricata con successo!', 'success');
     } catch (error) {
         console.error('Errore nell\'inizializzazione:', error);
-        showAlert('Errore nel caricamento dell\'applicazione', 'error');
+        showAlert(`Errore nel caricamento dell'applicazione: ${error.message}`, 'error');
         hideLoading();
     }
 });
@@ -74,6 +78,29 @@ async function apiCall(endpoint, options = {}) {
     return response.json();
 }
 
+async function adminApiCall(endpoint, options = {}) {
+    const headers = {
+        'Content-Type': 'application/json',
+        ...options.headers
+    };
+
+    if (adminPassword) {
+        headers['admin-password'] = adminPassword;
+    }
+
+    const response = await fetch(`${API_BASE}${endpoint}`, {
+        headers,
+        ...options
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || error.error || 'Errore nella richiesta admin');
+    }
+
+    return response.json();
+}
+
 async function loadInitialData() {
     users = await apiCall('/users');
     ranking = await apiCall('/ranking');
@@ -81,14 +108,17 @@ async function loadInitialData() {
 }
 
 function hideLoading() {
-    document.getElementById('loading').style.display = 'none';
+    const loadingElement = document.getElementById('loading');
+    if (loadingElement) {
+        loadingElement.style.display = 'none';
+    }
 }
 
 function updateUI() {
     updateUserSelect();
     updateAdminPlayerSelect();
+    updateAdminTeamSelect();
     updateClassifica();
-    updateMarketList();
     updateEventHistory();
 }
 
@@ -96,24 +126,35 @@ function updateUserSelect() {
     const userSelect = document.getElementById('user-select');
     const myUserSelect = document.getElementById('my-user-select');
     
-    userSelect.innerHTML = '<option value="">Scegli associato...</option>';
-    myUserSelect.innerHTML = '<option value="">Scegli il tuo nome...</option>';
+    if (userSelect) {
+        userSelect.innerHTML = '<option value="">Scegli associato...</option>';
+    }
+    
+    if (myUserSelect) {
+        myUserSelect.innerHTML = '<option value="">Scegli il tuo nome...</option>';
 
-    users.forEach(user => {
-        const option = document.createElement('option');
-        option.value = user.id;
-        option.textContent = user.name;
-        userSelect.appendChild(option);
+        users.forEach(user => {
+            if (userSelect) {
+                const option = document.createElement('option');
+                option.value = user.id;
+                option.textContent = user.name;
+                userSelect.appendChild(option);
+            }
 
-        const myOption = document.createElement('option');
-        myOption.value = user.id;
-        myOption.textContent = user.name;
-        myUserSelect.appendChild(myOption);
-    });
+            const myOption = document.createElement('option');
+            myOption.value = user.id;
+            myOption.textContent = user.name;
+            myUserSelect.appendChild(myOption);
+        });
+    }
 }
 
 function updateAdminPlayerSelect() {
     const playerSelect = document.getElementById('admin-player-select');
+    if (!playerSelect) {
+        return;
+    }
+    
     playerSelect.innerHTML = '<option value="">Scegli giocatore...</option>';
 
     fetch(`${API_BASE}/players`)
@@ -128,8 +169,93 @@ function updateAdminPlayerSelect() {
         });
 }
 
+function updateAdminTeamSelect() {
+    const teamSelect = document.getElementById('admin-team-select');
+    if (!teamSelect) {
+        return;
+    }
+    
+    teamSelect.innerHTML = '<option value="">Scegli squadra...</option>';
+
+    fetch(`${API_BASE}/ranking`)
+        .then(response => response.json())
+        .then(teams => {
+            teams.forEach(team => {
+                const option = document.createElement('option');
+                option.value = team.id;
+                option.textContent = `${team.name} (${team.credits} crediti)`;
+                teamSelect.appendChild(option);
+            });
+        })
+        .catch(error => {
+            console.error('Errore caricamento squadre:', error);
+        });
+
+    teamSelect.addEventListener('change', function() {
+        const selectedTeamId = this.value;
+        if (selectedTeamId) {
+            updateAdminTeamInfo();
+            updateAdminMarketList();
+        } else {
+            const adminTeamInfo = document.getElementById('admin-team-info');
+            if (adminTeamInfo) {
+                adminTeamInfo.style.display = 'none';
+            }
+        }
+    });
+}
+
+async function updateAdminTeamInfo() {
+    const selectedTeamId = document.getElementById('admin-team-select').value;
+    const teamInfoDiv = document.getElementById('admin-team-info');
+    
+    if (!selectedTeamId) {
+        teamInfoDiv.style.display = 'none';
+        return;
+    }
+
+    try {
+        const userPlayers = await apiCall(`/players?userId=${selectedTeamId}`);
+        const teamCredits = await apiCall(`/ranking`);
+        const selectedTeam = teamCredits.find(team => team.id == selectedTeamId);
+
+        teamInfoDiv.style.display = 'block';
+        document.getElementById('admin-credits-amount').textContent = selectedTeam.credits;
+        
+        const teamList = document.getElementById('admin-team-list');
+        teamList.innerHTML = '';
+        
+        if (userPlayers.length === 0) {
+            teamList.innerHTML = '<p>Nessun giocatore in squadra.</p>';
+        } else {
+            userPlayers.forEach(player => {
+                const playerDiv = document.createElement('div');
+                playerDiv.className = 'team-player';
+                playerDiv.innerHTML = `
+                    <div>
+                        <strong>${player.name}</strong><br>
+                        <small>Valore: ${player.baseValue} | Punti: ${player.currentPoints}</small>
+                    </div>
+                    <button class="btn btn-danger" onclick="adminSellPlayer(${player.id})">Vendi</button>
+                `;
+                teamList.appendChild(playerDiv);
+            });
+        }
+        
+        const teamHeader = document.querySelector('#admin-team-players h4');
+        teamHeader.textContent = `Giocatori in squadra (${userPlayers.length}/11)`;
+        
+    } catch (error) {
+        console.error('Errore aggiornamento info squadra admin:', error);
+    }
+}
+
 function updateClassifica() {
     const rankingList = document.getElementById('ranking-list');
+    if (!rankingList) {
+        return;
+    }
+    
     rankingList.innerHTML = '';
 
     let firstPosition = 'generale.png';
@@ -141,13 +267,13 @@ function updateClassifica() {
         rankingItem.className = 'ranking-item';
         let medalHtml = '';
         if (index === 0) {
-            medalHtml = `<img src="../img/${firstPosition}" alt="1°" class="ranking-medal"/>`;
+            medalHtml = `<img src="img/${firstPosition}" alt="1°" class="ranking-medal"/>`;
         } else if (index === 1) {
-            medalHtml = `<img src="../img/${secondPosition}" alt="2°" class="ranking-med"/>`;
+            medalHtml = `<img src="img/${secondPosition}" alt="2°" class="ranking-med"/>`;
         } else if (index === 2) {
-            medalHtml = `<img src="../img/${thirdPosition}" alt="3°" class="ranking-med"/>`;
+            medalHtml = `<img src="img/${thirdPosition}" alt="3°" class="ranking-med"/>`;
         }else if (index === ranking.length - 1){
-            medalHtml = `<img src="../img/soldato.png" alt="3°" class="ranking-med"/>`;
+            medalHtml = `<img src="img/soldato.png" alt="3°" class="ranking-med"/>`;
         }else{
             medalHtml = index+1;
         }
@@ -160,22 +286,11 @@ function updateClassifica() {
     });
 }
 
-async function updateMarketList() {
+async function updateAdminMarketList() {
     try {
         const availablePlayers = await apiCall('/players?available=true');
-        const marketList = document.getElementById('market-list');
+        const marketList = document.getElementById('admin-market-list');
         marketList.innerHTML = '';
-
-        if (!currentUserInfo || !userToken) {
-            marketList.innerHTML = `
-                <div style="text-align: center; padding: 20px;">
-                    <h3>🔐 Accesso Richiesto</h3>
-                    <p>Per accedere al mercato devi prima effettuare il login.</p>
-                    <p>Vai alla sezione <strong>"La Mia Squadra"</strong> e seleziona il tuo nome.</p>
-                </div>
-            `;
-            return;
-        }
 
         if (availablePlayers.length === 0) {
             marketList.innerHTML = '<p>Nessun giocatore disponibile nel mercato.</p>';
@@ -190,12 +305,12 @@ async function updateMarketList() {
                     <div class="market-player-name">${player.name}</div>
                     <div class="market-player-value">Valore: ${player.baseValue} crediti | Punti: ${player.currentPoints}</div>
                 </div>
-                <button class="btn btn-success" onclick="buyPlayer(${player.id}, ${player.baseValue})">Acquista</button>
+                <button class="btn btn-success" onclick="adminBuyPlayer(${player.id}, ${player.baseValue})">Acquista per Squadra</button>
             `;
             marketList.appendChild(playerDiv);
         });
     } catch (error) {
-        console.error('Errore aggiornamento mercato:', error);
+        console.error('Errore aggiornamento mercato admin:', error);
     }
 }
 
@@ -203,8 +318,10 @@ async function updateUserTeam(userId) {
     const userTeam = document.getElementById('user-team');
     const teamList = document.getElementById('team-list');
 
-    if (!userId) {
-        userTeam.style.display = 'none';
+    if (!userId || !userTeam) {
+        if (userTeam) {
+            userTeam.style.display = 'none';
+        }
         return;
     }
 
@@ -217,7 +334,7 @@ async function updateUserTeam(userId) {
 
         teamList.innerHTML = '';
         if (userPlayers.length === 0) {
-            teamList.innerHTML = '<p>Nessun giocatore in squadra. Acquista dal mercato!</p>';
+            teamList.innerHTML = '<p>Nessun giocatore in squadra. L\'admin può assegnarti dei giocatori!</p>';
             return;
         }
 
@@ -234,7 +351,6 @@ async function updateUserTeam(userId) {
                         <small>Valore: ${player.baseValue} | Punti: ${player.currentPoints}</small>
                     </label>
                 </div>
-                <button class="btn btn-danger" onclick="sellPlayer(${player.id})">Vendi</button>
             `;
             teamList.appendChild(playerDiv);
         });
@@ -254,16 +370,21 @@ async function updateUserTeam(userId) {
 }
 
 async function updateUserCredits(userId) {
-    if (!userId) {
-        document.getElementById('user-credits').style.display = 'none';
+    const userCredits = document.getElementById('user-credits');
+    const creditsAmount = document.getElementById('credits-amount');
+    
+    if (!userId || !userCredits) {
+        if (userCredits) {
+            userCredits.style.display = 'none';
+        }
         return;
     }
 
     try {
         const user = users.find(u => u.id == userId);
-        if (user) {
-            document.getElementById('user-credits').style.display = 'block';
-            document.getElementById('credits-amount').textContent = user.credits;
+        if (user && creditsAmount) {
+            userCredits.style.display = 'block';
+            creditsAmount.textContent = user.credits;
         }
     } catch (error) {
         console.error('Errore aggiornamento crediti:', error);
@@ -272,6 +393,10 @@ async function updateUserCredits(userId) {
 
 function updateEventHistory() {
     const eventHistory = document.getElementById('event-history');
+    if (!eventHistory) {
+        return;
+    }
+    
     eventHistory.innerHTML = '';
 
     if (events.length === 0) {
@@ -311,7 +436,10 @@ function updateEventHistory() {
 }
 
 async function onUserSelect() {
-    const userId = document.getElementById('user-select').value;
+    const userSelectElement = document.getElementById('user-select');
+    if (!userSelectElement) return;
+    
+    const userId = userSelectElement.value;
 
     currentUser = userId;
     await updateUserCredits(userId);
@@ -320,6 +448,8 @@ async function onUserSelect() {
 
 async function onMyUserSelect() {
     const userSelect = document.getElementById('my-user-select');
+    if (!userSelect) return;
+    
     const userId = userSelect.value;
     
     if (!userId) {
@@ -367,6 +497,10 @@ async function loginUser(userName, password = '') {
         await updateMyUserCredits(currentUserInfo.id);
         await updateMyUserTeam(currentUserInfo.id);
         
+        // Refresh all data and UI to reflect the login
+        await loadInitialData();
+        updateUI();
+        
         return loginData;
         
     } catch (error) {
@@ -381,7 +515,10 @@ async function logoutUser() {
     localStorage.removeItem('userToken');
     localStorage.removeItem('currentUserInfo');
     
-    document.getElementById('my-user-select').value = '';
+    const myUserSelect = document.getElementById('my-user-select');
+    if (myUserSelect) {
+        myUserSelect.value = '';
+    }
     document.getElementById('my-user-credits').style.display = 'none';
     document.getElementById('my-user-team').style.display = 'none';
     
@@ -423,7 +560,7 @@ async function updateMyUserTeam(userId) {
 
         teamList.innerHTML = '';
         if (userPlayers.length === 0) {
-            teamList.innerHTML = '<p>Nessun giocatore in squadra. Vai al <strong>Mercato</strong> per acquistare giocatori!</p>';
+            teamList.innerHTML = '<p>Nessun giocatore in squadra. L\'admin può assegnarti dei giocatori!</p>';
             return;
         }
 
@@ -433,10 +570,13 @@ async function updateMyUserTeam(userId) {
             const isSelected = player.selectedForLineup || false;
             playerDiv.innerHTML = `
                 <div>
-                    <input type="checkbox" id="my-player-${player.id}" ${isSelected ? 'checked' : ''} 
-                           onchange="toggleMyPlayerSelection(${player.id})" />
+                    
                     <label for="my-player-${player.id}">
-                        <strong>${player.name}</strong> ${isSelected ? '⚡' : ''}<br>
+                        <div class="" style="margin-bottom: 5px">
+                           <input type="checkbox" id="my-player-${player.id}" ${isSelected ? 'checked' : ''} 
+                           onchange="toggleMyPlayerSelection(${player.id})" />
+                           <strong>${player.name}</strong> ${isSelected ? '⚡' : ''}<br>
+                           </div>
                         <small>Valore: ${player.baseValue} | Punti: ${player.currentPoints}</small>
                     </label>
                 </div>
@@ -461,16 +601,18 @@ async function updateMyUserTeam(userId) {
     }
 }
 
-async function buyPlayer(playerId, playerValue) {
-    if (!currentUserInfo || !userToken) {
-        showAlert('Devi effettuare il login dalla sezione "La Mia Squadra"!', 'error');
+async function adminBuyPlayer(playerId, playerValue) {
+    const selectedTeam = document.getElementById('admin-team-select').value;
+    if (!selectedTeam) {
+        showAlert('Seleziona prima una squadra!', 'error');
         return;
     }
 
     try {
-        const result = await apiCall('/buy-player', {
+        const result = await adminApiCall('/admin/buy-player', {
             method: 'POST',
             body: JSON.stringify({
+                teamId: parseInt(selectedTeam),
                 playerId: playerId
             })
         });
@@ -479,32 +621,26 @@ async function buyPlayer(playerId, playerValue) {
 
         // Ricarica i dati
         await loadInitialData();
-        updateUI();
-        await updateMyUserCredits(currentUserInfo.id);
-        await updateMyUserTeam(currentUserInfo.id);
-        await updateMarketList();
-
-        // Update currentUser section if it's the same user
-        if (currentUser == currentUserInfo.id) {
-            await updateUserCredits(currentUser);
-            await updateUserTeam(currentUser);
-        }
+        await updateAdminTeamInfo();
+        await updateAdminMarketList();
 
     } catch (error) {
         showAlert(error.message, 'error');
     }
 }
 
-async function sellPlayer(playerId) {
-    if (!currentUserInfo || !userToken) {
-        showAlert('Devi effettuare il login dalla sezione "La Mia Squadra"!', 'error');
+async function adminSellPlayer(playerId) {
+    const selectedTeam = document.getElementById('admin-team-select').value;
+    if (!selectedTeam) {
+        showAlert('Seleziona prima una squadra!', 'error');
         return;
     }
 
     try {
-        const result = await apiCall('/sell-player', {
+        const result = await adminApiCall('/admin/sell-player', {
             method: 'POST',
             body: JSON.stringify({
+                teamId: parseInt(selectedTeam),
                 playerId: playerId
             })
         });
@@ -513,16 +649,8 @@ async function sellPlayer(playerId) {
 
         // Ricarica i dati
         await loadInitialData();
-        updateUI();
-        await updateMyUserCredits(currentUserInfo.id);
-        await updateMyUserTeam(currentUserInfo.id);
-        await updateMarketList();
-
-        // Update currentUser section if it's the same user
-        if (currentUser == currentUserInfo.id) {
-            await updateUserCredits(currentUser);
-            await updateUserTeam(currentUser);
-        }
+        await updateAdminTeamInfo();
+        await updateAdminMarketList();
 
     } catch (error) {
         showAlert(error.message, 'error');
@@ -611,9 +739,18 @@ async function resetSystem(type) {
 
 
         currentUser = null;
-        document.getElementById('user-select').value = '';
-        document.getElementById('user-credits').style.display = 'none';
-        document.getElementById('user-team').style.display = 'none';
+        const userSelect = document.getElementById('user-select');
+        if (userSelect) {
+            userSelect.value = '';
+        }
+        const userCredits = document.getElementById('user-credits');
+        if (userCredits) {
+            userCredits.style.display = 'none';
+        }
+        const userTeam = document.getElementById('user-team');
+        if (userTeam) {
+            userTeam.style.display = 'none';
+        }
 
     } catch (error) {
         showAlert(error.message, 'error');
@@ -631,8 +768,16 @@ function showSection(sectionName) {
     showSectionDirect(sectionName);
 }
 
+async function loadAllTeamsData() {
+    await updateAllTeams();
+}
+
 async function updateAllTeams() {
     const allTeamsContainer = document.getElementById('all-teams');
+    if (!allTeamsContainer) {
+        return;
+    }
+    
     allTeamsContainer.innerHTML = '';
 
     try {
@@ -693,7 +838,7 @@ function showAuthModal(sectionName) {
     const modal = document.getElementById('auth-modal');
     const sectionNameSpan = document.getElementById('protected-section-name');
     
-    sectionNameSpan.textContent = sectionName === 'mercato' ? 'Mercato' : 'Admin';
+    sectionNameSpan.textContent = 'Admin';
     modal.style.display = 'flex';
 
     setTimeout(() => {
@@ -707,6 +852,11 @@ function closeAuthModal() {
     currentProtectedSection = null;
     document.getElementById('admin-password').value = '';
     
+    // Clear admin authentication if modal is closed without success
+    if (!isAuthenticated) {
+        adminPassword = null;
+        localStorage.removeItem('adminPassword');
+    }
 
     showSection('classifica');
 }
@@ -720,11 +870,41 @@ async function authenticateUser(password) {
         
         if (result.success) {
             isAuthenticated = true;
-            showAlert('Autenticazione riuscita!', 'success');
-            closeAuthModal();
+            adminPassword = password; // Store admin password for API calls
             
-            // Ora mostra la sezione protetta
-            if (currentProtectedSection) {
+            // Save admin password to localStorage for persistence
+            localStorage.setItem('adminPassword', password);
+            showAlert('Autenticazione riuscita!', 'success');
+
+
+            // Load admin panel data and show the section
+            if (currentProtectedSection === 'admin') {
+                // Add 1 second delay to let UI settle
+                setTimeout(async () => {
+                    try {
+                        closeAuthModal();
+                        await loadInitialData();
+                        updateUI();
+                        updateAdminTeamSelect();
+                        updateAdminPlayerSelect();
+                        
+                        // Show the admin section
+                        showSectionDirect(currentProtectedSection);
+                        
+                        // Trigger a custom event that admin.html can listen to
+                        if (window.dispatchEvent) {
+                            window.dispatchEvent(new CustomEvent('adminAuthenticated'));
+                        }
+                        
+                        // Hide loading in case it's still showing
+                        hideLoading();
+                    } catch (error) {
+                        console.error('Error loading admin data:', error);
+                        // Fallback to reload if there are issues
+                        window.location.reload();
+                    }
+                }, 500);
+            } else if (currentProtectedSection) {
                 showSectionDirect(currentProtectedSection);
             }
             
@@ -768,55 +948,93 @@ function showSectionDirect(sectionName) {
         });
     } else if (sectionName === 'mia-squadra') {
         // No specific action needed, the section will load when user selects their name
-    } else if (sectionName === 'mercato') {
-        updateMarketList();
+    } else if (sectionName === 'admin') {
+        updateAdminTeamSelect();
+        updateAdminMarketList();
     }
 }
 
-document.getElementById('user-select').addEventListener('change', onUserSelect);
-document.getElementById('my-user-select').addEventListener('change', onMyUserSelect);
+const userSelectElement = document.getElementById('user-select');
+const myUserSelectElement = document.getElementById('my-user-select');
 
-document.getElementById('auth-form').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    const password = document.getElementById('admin-password').value;
-    
-    if (password) {
-        await authenticateUser(password);
-    } else {
-        showAlert('Inserisci la password!', 'error');
-    }
-});
+if (userSelectElement) {
+    userSelectElement.addEventListener('change', onUserSelect);
+}
+if (myUserSelectElement) {
+    myUserSelectElement.addEventListener('change', onMyUserSelect);
+}
+
+const authForm = document.getElementById('auth-form');
+if (authForm) {
+    authForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const password = document.getElementById('admin-password').value;
+        
+        if (password) {
+            await authenticateUser(password);
+        } else {
+            showAlert('Inserisci la password!', 'error');
+        }
+    });
+}
 
 // User login modal handlers
-document.getElementById('user-login-form').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    const password = document.getElementById('user-password').value;
-    
-    if (password && selectedUserForLogin) {
-        try {
-            await loginUser(selectedUserForLogin.name, password);
-            closeUserLoginModal();
-            
-            // Ensure the user select shows the logged in user
-            document.getElementById('my-user-select').value = currentUserInfo.id;
-        } catch (error) {
-            showAlert(error.message, 'error');
-            document.getElementById('user-password').value = '';
+const userLoginForm = document.getElementById('user-login-form');
+if (userLoginForm) {
+    userLoginForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const password = document.getElementById('user-password').value;
+        
+        if (password && selectedUserForLogin) {
+            try {
+                await loginUser(selectedUserForLogin.name, password);
+                closeUserLoginModal();
+                
+                // Ensure the user select shows the logged in user
+                const myUserSelect = document.getElementById('my-user-select');
+                if (myUserSelect && currentUserInfo) {
+                    myUserSelect.value = currentUserInfo.id;
+                }
+                
+                // Force UI refresh after successful login
+                updateUI();
+            } catch (error) {
+                showAlert(error.message, 'error');
+                const userPassword = document.getElementById('user-password');
+                if (userPassword) {
+                    userPassword.value = '';
+                }
+            }
+        } else {
+            showAlert('Inserisci la password!', 'error');
         }
-    } else {
-        showAlert('Inserisci la password!', 'error');
-    }
-});
+    });
+}
 
 // User login modal functions
 function showUserLoginModal(userName) {
-    document.getElementById('login-user-name').textContent = userName;
-    document.getElementById('user-login-modal').style.display = 'flex';
-    document.getElementById('user-password').value = '';
-    document.getElementById('set-password-form').style.display = 'none';
+    const loginUserName = document.getElementById('login-user-name');
+    const userLoginModal = document.getElementById('user-login-modal');
+    const userPassword = document.getElementById('user-password');
+    const setPasswordForm = document.getElementById('set-password-form');
+    
+    if (loginUserName) {
+        loginUserName.textContent = userName;
+    }
+    if (userLoginModal) {
+        userLoginModal.style.display = 'flex';
+    }
+    if (userPassword) {
+        userPassword.value = '';
+    }
+    if (setPasswordForm) {
+        setPasswordForm.style.display = 'none';
+    }
     
     setTimeout(() => {
-        document.getElementById('user-password').focus();
+        if (userPassword) {
+            userPassword.focus();
+        }
     }, 100);
 }
 
@@ -828,7 +1046,10 @@ function closeUserLoginModal() {
     document.getElementById('confirm-password').value = '';
     
     // Reset user selection
-    document.getElementById('my-user-select').value = '';
+    const myUserSelect = document.getElementById('my-user-select');
+    if (myUserSelect) {
+        myUserSelect.value = '';
+    }
 }
 
 function showSetPasswordForm() {
@@ -869,7 +1090,13 @@ async function setNewPassword() {
         closeUserLoginModal();
         
         // Ensure the user select shows the logged in user
-        document.getElementById('my-user-select').value = currentUserInfo.id;
+        const myUserSelect = document.getElementById('my-user-select');
+        if (myUserSelect) {
+            myUserSelect.value = currentUserInfo.id;
+        }
+        
+        // Force UI refresh after successful login
+        updateUI();
         
     } catch (error) {
         showAlert('Password non corretta! Inserisci la password corretta.', 'error');

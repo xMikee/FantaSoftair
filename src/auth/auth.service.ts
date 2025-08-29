@@ -33,13 +33,27 @@ export class AuthService {
     return password === this.ADMIN_PASSWORD;
   }
 
-  async loginUser(userName: string) {
+  async loginUser(userName: string, password: string) {
     const user = await this.usersRepository.findOne({
       where: { name: userName }
     });
 
     if (!user) {
       throw new UnauthorizedException('Utente non trovato');
+    }
+
+    // Generate password if not exists
+    if (!user.teamPassword) {
+      const crypto = await import('crypto');
+      const randomPassword = crypto.randomBytes(4).toString('hex').toUpperCase();
+      user.teamPassword = randomPassword;
+      await this.usersRepository.save(user);
+      throw new UnauthorizedException(`Password generata automaticamente: ${randomPassword}. Riprova con questa password.`);
+    }
+
+    // Verify password
+    if (user.teamPassword !== password) {
+      throw new UnauthorizedException('Password errata');
     }
 
     const payload = { userId: user.id, userName: user.name };
@@ -83,6 +97,35 @@ export class AuthService {
         id: user.id,
         name: user.name
       }))
+    };
+  }
+
+  async getAllPasswords() {
+    const users = await this.usersRepository.find({
+      select: ['id', 'name', 'teamPassword'],
+      order: { name: 'ASC' }
+    });
+
+    // Generate passwords for users who don't have one
+    const crypto = await import('crypto');
+    const updatedUsers = [];
+
+    for (const user of users) {
+      if (!user.teamPassword) {
+        const randomPassword = crypto.randomBytes(4).toString('hex').toUpperCase();
+        user.teamPassword = randomPassword;
+        await this.usersRepository.save(user);
+      }
+      updatedUsers.push({
+        id: user.id,
+        name: user.name,
+        password: user.teamPassword
+      });
+    }
+
+    return {
+      success: true,
+      users: updatedUsers
     };
   }
 }

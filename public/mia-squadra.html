@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>La Mia Squadra - Fanta Softair A-Team</title>
+    <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64,AAABAAEAEBAAAAAAAABoBQAAFgAAACgAAAAQAAAAIAAAAAEACAAAAAAAAAEAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAEAAAABAAABAAAAAQAAAQAAAAEAAAABAAABAAAAAQAAAQAAAAEAAAABAAABAAAAAQAAAQAAAAEAAAABAAABAAAAAQ==">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <img src="img/a-team-logo.svg" alt="Logo" class="logo">
+        <h1>Fanta Softair A-Team</h1>
+    </div>
+
+    <div class="nav">
+        <button class="nav-btn" onclick="location.href='classifica.html'">Classifica</button>
+        <button class="nav-btn active" onclick="location.href='mia-squadra.html'">La Mia Squadra</button>
+        <button class="nav-btn" onclick="location.href='squadre.html'">Squadre</button>
+        <button class="nav-btn" onclick="location.href='admin.html'">🔒Admin</button>
+    </div>
+
+    <div id="loading" class="loading">
+        <p>Caricamento dati in corso...</p>
+    </div>
+
+    <!-- Sezione La Mia Squadra -->
+    <div id="mia-squadra" class="section active">
+        <h2>⚡ La Mia Squadra</h2>
+        <div class="card">
+            <div class="form-group">
+                <label>Seleziona il tuo nome:</label>
+                <select id="my-user-select">
+                    <option value="">Scegli il tuo nome...</option>
+                </select>
+            </div>
+            <div id="my-user-credits" class="credits" style="display: none;">
+                Crediti disponibili: <span id="my-credits-amount">1000</span>
+            </div>
+            <div id="my-user-team" class="team-display" style="display: none;">
+                <h3>La Tua Squadra (0/11)</h3>
+                <p class="lineup-info">Seleziona fino a 8 giocatori per la formazione titolare. Solo i giocatori selezionati guadagneranno punti!</p>
+                <div id="my-team-list"></div>
+            </div>
+        </div>
+        <footer>
+            <div class="copy" style="text-align: center;margin-top: 20px;font-size: 12px">
+                &copy; 2025 Fanta Softair A-Team. Tutti i diritti riservati. <a style="color: #a2915e" href="https://www.linkedin.com/in/michele-picerno/">Michele P. - Spritz</a></div>
+        </footer>
+    </div>
+
+</div>
+
+<!-- Modal di Login Utente -->
+<div id="user-login-modal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <h3>🔐 Accesso Utente</h3>
+        <p>Benvenuto <strong><span id="login-user-name"></span></strong>!</p>
+        <p>Inserisci la tua password per accedere:</p>
+        <form id="user-login-form">
+            <div class="form-group">
+                <input type="password" id="user-password" placeholder="Password..." required>
+            </div>
+            <div class="form-buttons">
+                <button type="submit" class="btn btn-success">Accedi</button>
+                <button type="button" class="btn" onclick="closeUserLoginModal()">Annulla</button>
+            </div>
+        </form>
+
+        <div id="set-password-form" style="display: none;">
+            <hr style="margin: 15px 0;">
+            <h4>Password Temporanea</h4>
+            <p><small>Inserisci la password temporanea che ti è stata fornita:</small></p>
+            <div class="form-group">
+                <input type="password" id="new-password" placeholder="Password temporanea..." required>
+            </div>
+            <div class="form-group">
+                <input type="password" id="confirm-password" placeholder="Conferma password temporanea..." required>
+            </div>
+            <div class="form-buttons">
+                <button type="button" class="btn btn-success" onclick="setNewPassword()">Accedi</button>
+                <button type="button" class="btn" onclick="hideSetPasswordForm()">Annulla</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="alert-container"></div>
+
+<script src="script.js?v=1725392400"></script>
+<script>
+    // Show only mia-squadra section on page load
+    document.addEventListener('DOMContentLoaded', async function() {
+        try {
+            // Check if user is already logged in
+            const savedToken = localStorage.getItem('userToken');
+            const savedUserInfo = localStorage.getItem('currentUserInfo');
+            
+            if (savedToken && savedUserInfo) {
+                userToken = savedToken;
+                currentUserInfo = JSON.parse(savedUserInfo);
+            }
+
+            await loadInitialData();
+            updateUI();
+            
+            // Restore logged-in user state
+            if (currentUserInfo) {
+                document.getElementById('my-user-select').value = currentUserInfo.id;
+                await updateMyUserCredits(currentUserInfo.id);
+                await updateMyUserTeam(currentUserInfo.id);
+            }
+            
+            hideLoading();
+            showAlert('La tua squadra caricata con successo!', 'success');
+        } catch (error) {
+            console.error('Errore nel caricamento della squadra:', error);
+            showAlert('Errore nel caricamento della squadra', 'error');
+            hideLoading();
+        }
+    });
+</script>
+</body>
+</html>

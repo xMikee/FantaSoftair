@@ -15,6 +15,9 @@ export class User {
   @Column({ default: 0, name: 'total_points' })
   totalPoints: number;
 
+  @Column({ nullable: true, name: 'team_password' })
+  teamPassword: string;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
