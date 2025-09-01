@@ -7,6 +7,7 @@ import { UsersModule } from './users/users.module';
 import { PlayersModule } from './players/players.module';
 import { MarketModule } from './market/market.module';
 import { EventsModule } from './events/events.module';
+import { GameEventsModule } from './game-events/game-events.module';
 import { AdminModule } from './admin/admin.module';
 import { TeamModule } from './team/team.module';
 
@@ -23,6 +24,7 @@ import { TeamModule } from './team/team.module';
     PlayersModule,
     MarketModule,
     EventsModule,
+    GameEventsModule,
     AdminModule,
     TeamModule,
   ],

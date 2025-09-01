@@ -4,32 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin - Fanta Softair A-Team</title>
-    <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64,AAABAAEAEBAAAAAAAABoBQAAFgAAACgAAAAQAAAAIAAAAAEACAAAAAAAAAEAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAP///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAAEAAAABAAABAAAAAQAAAQAAAAEAAAABAAABAAAAAQAAAQAAAAEAAAABAAABAAAAAQAAAQAAAAEAAAABAAABAAAAAQ==">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div class="container">
-    <div class="header">
-        <img src="img/a-team-logo.svg" alt="Logo" class="logo">
-        <h1>Fanta Softair A-Team</h1>
-    </div>
-
-    <div class="nav">
-        <div class="hamburger" id="hamburger">
-            <span></span>
-            <span></span>
-            <span></span>
-        </div>
-        <div class="nav-menu" id="nav-menu">
-            <button class="nav-btn" onclick="location.href='classifica.html'">Classifica</button>
-            <button class="nav-btn" onclick="location.href='mia-squadra.html'">La Mia Squadra</button>
-            <button class="nav-btn" onclick="location.href='squadre.html'">Squadre</button>
-            <button class="nav-btn active" onclick="location.href='admin.html'">🔒Admin</button>
-        </div>
-    </div>
-    
-    <!-- Mobile menu overlay -->
-    <div class="nav-overlay" id="nav-overlay"></div>
+    <!-- Header Component -->
+    <div id="header-container"></div>
 
     <div id="loading" class="loading">
         <p>Caricamento dati in corso...</p>
@@ -154,12 +134,36 @@
                 </div>
             </div>
 
+            <div class="card">
+                <h3>📅 Gestione Eventi</h3>
+                <p style="margin-bottom: 15px; color: #718096;">
+                    Crea, modifica ed elimina eventi del sistema Fanta
+                </p>
+                
+                <div class="form-group">
+                    <label>Nome Evento:</label>
+                    <input type="text" id="event-name" placeholder="Es: Battaglia di Primavera 2025">
+                </div>
+                <div class="form-group">
+                    <label>Data Evento:</label>
+                    <input type="date" id="event-date">
+                </div>
+                <div class="form-group">
+                    <label>Descrizione (opzionale):</label>
+                    <textarea id="event-desc" rows="3" style="width: 100%" placeholder="Descrizione dell'evento..."></textarea>
+                </div>
+                <button class="btn btn-success" onclick="createGameEvent()">Crea Evento</button>
+                
+                <div class="events-list" style="margin-top: 20px;">
+                    <h4>Eventi Esistenti</h4>
+                    <div id="game-events-list"></div>
+                </div>
+            </div>
+
         </div>
 
-        <footer>
-            <div class="copy" style="text-align: center;margin-top: 20px;font-size: 12px">
-                &copy; 2025 Fanta Softair A-Team. Tutti i diritti riservati. <a style="color: #a2915e" href="https://www.linkedin.com/in/michele-picerno/">Michele P. - Spritz</a></div>
-        </footer>
+        <!-- Footer Component -->
+        <div id="footer-container"></div>
     </div>
 
     <div id="alert-container"></div>
@@ -187,6 +191,10 @@
     // Show only admin section on page load and require authentication
     document.addEventListener('DOMContentLoaded', async function() {
         try {
+            // Load components
+            await loadComponent('header', 'header-container');
+            await loadComponent('footer', 'footer-container');
+            
             // Check admin authentication
             const savedAdminPassword = localStorage.getItem('adminPassword');
             if (savedAdminPassword) {
@@ -214,6 +222,7 @@
             updateUI();
             updateAdminTeamSelect();
             updateAdminPlayerSelect();
+            await loadGameEvents();
             
             // Make sure the admin section is visible
             const adminSection = document.getElementById('admin');

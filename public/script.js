@@ -1,3 +1,31 @@
+// Funzioni per caricare componenti
+async function loadComponent(componentName, containerId) {
+    try {
+        const response = await fetch(`components/${componentName}.html`);
+        const html = await response.text();
+        document.getElementById(containerId).innerHTML = html;
+        
+        // Set active nav button based on current page
+        if (componentName === 'header') {
+            setActiveNavButton();
+        }
+    } catch (error) {
+        console.error(`Errore nel caricamento del componente ${componentName}:`, error);
+    }
+}
+
+function setActiveNavButton() {
+    const currentPage = window.location.pathname.split('/').pop().replace('.html', '');
+    const navButtons = document.querySelectorAll('.nav-btn');
+    
+    navButtons.forEach(button => {
+        button.classList.remove('active');
+        if (button.getAttribute('data-page') === currentPage) {
+            button.classList.add('active');
+        }
+    });
+}
+
 // Variabili globali
 let currentUser = null;
 let users = [];
@@ -1379,3 +1407,169 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+// Game Events Management Functions
+let gameEvents = [];
+
+async function loadGameEvents() {
+    try {
+        gameEvents = await adminApiCall('/admin-eventi');
+        updateGameEventsList();
+    } catch (error) {
+        console.error('Errore nel caricamento degli eventi:', error);
+        showAlert('Errore nel caricamento degli eventi: ' + error.message, 'error');
+    }
+}
+
+function updateGameEventsList() {
+    const gameEventsList = document.getElementById('game-events-list');
+    if (!gameEventsList) return;
+
+    if (gameEvents.length === 0) {
+        gameEventsList.innerHTML = '<p>Nessun evento creato.</p>';
+        return;
+    }
+
+    const now = new Date();
+    const upcoming = gameEvents.filter(event => new Date(event.date) >= now);
+    const past = gameEvents.filter(event => new Date(event.date) < now);
+
+    let html = '';
+
+    if (upcoming.length > 0) {
+        html += '<div class="events-section"><h5 style="color: #28a745;">🔮 Eventi Futuri</h5>';
+        upcoming.forEach(event => {
+            html += createEventHTML(event, true);
+        });
+        html += '</div>';
+    }
+
+    if (past.length > 0) {
+        html += '<div class="events-section" style="margin-top: 15px;"><h5 style="color: #6c757d;">📚 Eventi Passati</h5>';
+        past.forEach(event => {
+            html += createEventHTML(event, false);
+        });
+        html += '</div>';
+    }
+
+    gameEventsList.innerHTML = html;
+}
+
+function createEventHTML(event, isUpcoming) {
+    const date = new Date(event.date);
+    const formattedDate = date.toLocaleDateString('it-IT', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+
+    const statusClass = isUpcoming ? 'upcoming' : 'past';
+    const statusIcon = isUpcoming ? '🔮' : '✅';
+
+    return `
+        <div class="event-item ${statusClass}" style="background: #f8f9fa; padding: 10px; margin: 5px 0; border-radius: 5px; border-left: 4px solid ${isUpcoming ? '#28a745' : '#6c757d'};">
+            <div style="display: flex; justify-content: between; align-items: center;">
+                <div style="flex: 1;">
+                    <strong>${statusIcon} ${event.name}</strong>
+                    <br><small style="color: #6c757d;">${formattedDate}</small>
+                    ${event.description ? `<br><em>${event.description}</em>` : ''}
+                </div>
+                <div style="display: flex; gap: 5px;">
+                    <button class="btn btn-sm btn-secondary" onclick="editGameEvent(${event.id})" style="font-size: 12px;">✏️</button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteGameEvent(${event.id})" style="font-size: 12px;">🗑️</button>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+async function createGameEvent() {
+    const name = document.getElementById('event-name').value.trim();
+    const date = document.getElementById('event-date').value;
+    const description = document.getElementById('event-desc').value.trim();
+
+    if (!name || !date) {
+        showAlert('Nome e data sono obbligatori!', 'error');
+        return;
+    }
+
+    try {
+        const newEvent = await adminApiCall('/admin-eventi', {
+            method: 'POST',
+            body: JSON.stringify({
+                name,
+                date,
+                description: description || undefined
+            })
+        });
+
+        gameEvents.push(newEvent);
+        updateGameEventsList();
+
+        document.getElementById('event-name').value = '';
+        document.getElementById('event-date').value = '';
+        document.getElementById('event-desc').value = '';
+
+        showAlert('Evento creato con successo!', 'success');
+    } catch (error) {
+        console.error('Errore nella creazione dell\'evento:', error);
+        showAlert('Errore nella creazione dell\'evento: ' + error.message, 'error');
+    }
+}
+
+async function editGameEvent(eventId) {
+    const event = gameEvents.find(e => e.id === eventId);
+    if (!event) return;
+
+    const newName = prompt('Nuovo nome evento:', event.name);
+    if (!newName) return;
+
+    const newDate = prompt('Nuova data (YYYY-MM-DD):', event.date.split('T')[0]);
+    if (!newDate) return;
+
+    const newDescription = prompt('Nuova descrizione (lascia vuoto per rimuovere):', event.description || '');
+
+    try {
+        const updatedEvent = await adminApiCall(`/admin-eventi/${eventId}`, {
+            method: 'POST',
+            body: JSON.stringify({
+                name: newName,
+                date: newDate,
+                description: newDescription || undefined
+            })
+        });
+
+        const index = gameEvents.findIndex(e => e.id === eventId);
+        gameEvents[index] = updatedEvent;
+        updateGameEventsList();
+
+        showAlert('Evento aggiornato con successo!', 'success');
+    } catch (error) {
+        console.error('Errore nell\'aggiornamento dell\'evento:', error);
+        showAlert('Errore nell\'aggiornamento dell\'evento: ' + error.message, 'error');
+    }
+}
+
+async function deleteGameEvent(eventId) {
+    const event = gameEvents.find(e => e.id === eventId);
+    if (!event) return;
+
+    if (!confirm(`Sei sicuro di voler eliminare l'evento "${event.name}"?`)) {
+        return;
+    }
+
+    try {
+        await adminApiCall(`/admin-eventi/${eventId}/delete`, {
+            method: 'POST'
+        });
+
+        gameEvents = gameEvents.filter(e => e.id !== eventId);
+        updateGameEventsList();
+
+        showAlert('Evento eliminato con successo!', 'success');
+    } catch (error) {
+        console.error('Errore nell\'eliminazione dell\'evento:', error);
+        showAlert('Errore nell\'eliminazione dell\'evento: ' + error.message, 'error');
+    }
+}

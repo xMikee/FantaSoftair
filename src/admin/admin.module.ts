@@ -7,6 +7,7 @@ import { Player } from '../database/entities/player.entity';
 import { Event } from '../database/entities/event.entity';
 import { PlayersModule } from '../players/players.module';
 import { EventsModule } from '../events/events.module';
+import { GameEventsModule } from '../game-events/game-events.module';
 import { AuthModule } from '../auth/auth.module';
 
 @Module({
@@ -14,6 +15,7 @@ import { AuthModule } from '../auth/auth.module';
     TypeOrmModule.forFeature([User, Player, Event]),
     PlayersModule,
     EventsModule,
+    GameEventsModule,
     AuthModule,
   ],
   controllers: [AdminController],

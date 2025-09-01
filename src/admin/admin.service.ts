@@ -6,6 +6,7 @@ import { Player } from '../database/entities/player.entity';
 import { Event } from '../database/entities/event.entity';
 import { PlayersService } from '../players/players.service';
 import { EventsService } from '../events/events.service';
+import { GameEventsService } from '../game-events/game-events.service';
 import * as crypto from 'crypto';
 
 @Injectable()
@@ -19,6 +20,7 @@ export class AdminService {
     private eventsRepository: Repository<Event>,
     private playersService: PlayersService,
     private eventsService: EventsService,
+    public gameEventsService: GameEventsService,
   ) {}
 
   async updateScore(playerId: number, points: number, description?: string) {

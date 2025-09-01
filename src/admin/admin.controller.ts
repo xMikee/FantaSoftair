@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UseGuards, Get, Res, Req } from '@nestjs/common';
+import { Body, Controller, Post, UseGuards, Get, Res, Req, Param } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { UpdateScoreDto } from './dto/update-score.dto';
 import { ResetSystemDto } from './dto/reset-system.dto';
@@ -65,5 +65,37 @@ export class AdminController {
   @ApiResponse({ status: 401, description: 'Admin authentication required' })
   async assignPlayersToTeam(@Body() body: { teamName: string; playerIds: number[] }) {
     return this.adminService.assignPlayersToTeam(body.teamName, body.playerIds);
+  }
+
+  @Get('admin-eventi')
+  @ApiOperation({ summary: 'Get all game events for admin management' })
+  @ApiResponse({ status: 200, description: 'List of all game events' })
+  @ApiResponse({ status: 401, description: 'Admin authentication required' })
+  async getAllGameEvents() {
+    return this.adminService.gameEventsService.findAll();
+  }
+
+  @Post('admin-eventi')
+  @ApiOperation({ summary: 'Create new game event (Admin only)' })
+  @ApiResponse({ status: 201, description: 'Game event created successfully' })
+  @ApiResponse({ status: 401, description: 'Admin authentication required' })
+  async createGameEvent(@Body() body: { name: string; date: string; description?: string }) {
+    return this.adminService.gameEventsService.create(body);
+  }
+
+  @Post('admin-eventi/:id')
+  @ApiOperation({ summary: 'Update game event (Admin only)' })
+  @ApiResponse({ status: 200, description: 'Game event updated successfully' })
+  @ApiResponse({ status: 401, description: 'Admin authentication required' })
+  async updateGameEvent(@Param('id') id: string, @Body() body: { name?: string; date?: string; description?: string; active?: boolean }) {
+    return this.adminService.gameEventsService.update(+id, body);
+  }
+
+  @Post('admin-eventi/:id/delete')
+  @ApiOperation({ summary: 'Delete game event (Admin only)' })
+  @ApiResponse({ status: 200, description: 'Game event deleted successfully' })
+  @ApiResponse({ status: 401, description: 'Admin authentication required' })
+  async deleteGameEvent(@Param('id') id: string) {
+    return this.adminService.gameEventsService.remove(+id);
   }
 }
