@@ -72,7 +72,8 @@ export class AdminController {
   @ApiResponse({ status: 200, description: 'List of all game events' })
   @ApiResponse({ status: 401, description: 'Admin authentication required' })
   async getAllGameEvents() {
-    return this.adminService.gameEventsService.findAll();
+    // Per l'admin, mostra tutti gli eventi (attivi e inattivi)
+    return this.adminService.getAllGameEventsForAdmin();
   }
 
   @Post('admin-eventi')
@@ -96,6 +97,7 @@ export class AdminController {
   @ApiResponse({ status: 200, description: 'Game event deleted successfully' })
   @ApiResponse({ status: 401, description: 'Admin authentication required' })
   async deleteGameEvent(@Param('id') id: string) {
-    return this.adminService.gameEventsService.remove(+id);
+    await this.adminService.gameEventsService.remove(+id);
+    return { message: 'Evento eliminato con successo' };
   }
 }

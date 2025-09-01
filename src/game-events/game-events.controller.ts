@@ -6,7 +6,7 @@ import { UpdateGameEventDto } from './dto/update-game-event.dto';
 import { AdminGuard } from '../auth/guards/admin.guard';
 
 @ApiTags('Game Events')
-@Controller('api/eventi')
+@Controller(['api/eventi', 'api/game-events'])
 export class GameEventsController {
   constructor(private readonly gameEventsService: GameEventsService) {}
 

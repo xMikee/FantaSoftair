@@ -114,6 +114,11 @@ export class AdminService {
     };
   }
 
+  async getAllGameEventsForAdmin() {
+    // Per l'admin, restituisci solo eventi attivi (gli inattivi sono considerati "eliminati")
+    return this.gameEventsService.findAll();
+  }
+
   private generateRandomPassword(): string {
     return crypto.randomBytes(4).toString('hex').toUpperCase();
   }

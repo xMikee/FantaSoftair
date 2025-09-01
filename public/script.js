@@ -140,6 +140,7 @@ async function loadInitialData() {
     users = await apiCall('/users');
     ranking = await apiCall('/ranking');
     events = await apiCall('/events');
+    await loadPublicGameEvents();
 }
 
 function hideLoading() {
@@ -1410,6 +1411,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Game Events Management Functions
 let gameEvents = [];
+let countdownTimer = null;
 
 async function loadGameEvents() {
     try {
@@ -1463,6 +1465,10 @@ function createEventHTML(event, isUpcoming) {
         month: 'long',
         day: 'numeric'
     });
+    const formattedTime = date.toLocaleTimeString('it-IT', {
+        hour: '2-digit',
+        minute: '2-digit'
+    });
 
     const statusClass = isUpcoming ? 'upcoming' : 'past';
     const statusIcon = isUpcoming ? '🔮' : '✅';
@@ -1472,7 +1478,7 @@ function createEventHTML(event, isUpcoming) {
             <div style="display: flex; justify-content: between; align-items: center;">
                 <div style="flex: 1;">
                     <strong>${statusIcon} ${event.name}</strong>
-                    <br><small style="color: #6c757d;">${formattedDate}</small>
+                    <br><small style="color: #6c757d;">${formattedDate} alle ${formattedTime}</small>
                     ${event.description ? `<br><em>${event.description}</em>` : ''}
                 </div>
                 <div style="display: flex; gap: 5px;">
@@ -1525,7 +1531,8 @@ async function editGameEvent(eventId) {
     const newName = prompt('Nuovo nome evento:', event.name);
     if (!newName) return;
 
-    const newDate = prompt('Nuova data (YYYY-MM-DD):', event.date.split('T')[0]);
+    const currentDateTime = new Date(event.date).toISOString().slice(0, 16);
+    const newDate = prompt('Nuova data e ora (YYYY-MM-DDTHH:MM):', currentDateTime);
     if (!newDate) return;
 
     const newDescription = prompt('Nuova descrizione (lascia vuoto per rimuovere):', event.description || '');
@@ -1561,7 +1568,8 @@ async function deleteGameEvent(eventId) {
 
     try {
         await adminApiCall(`/admin-eventi/${eventId}/delete`, {
-            method: 'POST'
+            method: 'POST',
+            body: JSON.stringify({})
         });
 
         gameEvents = gameEvents.filter(e => e.id !== eventId);
@@ -1571,5 +1579,126 @@ async function deleteGameEvent(eventId) {
     } catch (error) {
         console.error('Errore nell\'eliminazione dell\'evento:', error);
         showAlert('Errore nell\'eliminazione dell\'evento: ' + error.message, 'error');
+    }
+}
+
+// Countdown functionality
+function getNextUpcomingEvent() {
+    if (!gameEvents || gameEvents.length === 0) return null;
+    
+    const now = new Date();
+    const upcomingEvents = gameEvents.filter(event => new Date(event.date) > now);
+    
+    if (upcomingEvents.length === 0) return null;
+    
+    // Sort by date and return the soonest
+    return upcomingEvents.sort((a, b) => new Date(a.date) - new Date(b.date))[0];
+}
+
+function createCountdown(eventDate, eventName) {
+    const now = new Date().getTime();
+    const eventTime = new Date(eventDate).getTime();
+    const distance = eventTime - now;
+    
+    if (distance < 0) {
+        return null; // Event has passed
+    }
+    
+    const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+    
+    return {
+        days,
+        hours,
+        minutes,
+        seconds,
+        eventName,
+        distance
+    };
+}
+
+function startCountdown() {
+    const nextEvent = getNextUpcomingEvent();
+    if (!nextEvent) {
+        hideCountdown();
+        return;
+    }
+    
+    showCountdown();
+    updateCountdownDisplay(nextEvent);
+    
+    // Clear any existing timer
+    if (countdownTimer) {
+        clearInterval(countdownTimer);
+    }
+    
+    countdownTimer = setInterval(() => {
+        const countdown = createCountdown(nextEvent.date, nextEvent.name);
+        
+        if (!countdown) {
+            // Event has passed, check for next event
+            clearInterval(countdownTimer);
+            startCountdown();
+            return;
+        }
+        
+        updateCountdownDisplay(nextEvent, countdown);
+    }, 1000);
+}
+
+function updateCountdownDisplay(event, countdown = null) {
+    if (!countdown) {
+        countdown = createCountdown(event.date, event.name);
+    }
+    
+    if (!countdown) return;
+    
+    const countdownElement = document.getElementById('countdown-display');
+    const eventNameElement = document.getElementById('countdown-event-name');
+    
+    if (countdownElement && eventNameElement) {
+        eventNameElement.textContent = event.name;
+        
+        let displayText = '';
+        if (countdown.days > 0) {
+            displayText += `${countdown.days}g `;
+        }
+        displayText += `${String(countdown.hours).padStart(2, '0')}:${String(countdown.minutes).padStart(2, '0')}:${String(countdown.seconds).padStart(2, '0')}`;
+        
+        countdownElement.textContent = displayText;
+    }
+}
+
+function showCountdown() {
+    const countdownContainer = document.getElementById('countdown-container');
+    if (countdownContainer) {
+        countdownContainer.style.display = 'block';
+    }
+}
+
+function hideCountdown() {
+    const countdownContainer = document.getElementById('countdown-container');
+    if (countdownContainer) {
+        countdownContainer.style.display = 'none';
+    }
+    
+    if (countdownTimer) {
+        clearInterval(countdownTimer);
+        countdownTimer = null;
+    }
+}
+
+// Load game events for public access (without admin authentication)
+async function loadPublicGameEvents() {
+    try {
+        const response = await fetch(`${API_BASE}/game-events`);
+        if (response.ok) {
+            gameEvents = await response.json();
+            startCountdown();
+        }
+    } catch (error) {
+        console.error('Errore nel caricamento degli eventi pubblici:', error);
     }
 }

@@ -8,7 +8,7 @@ export class GameEvent {
   @Column()
   name: string;
 
-  @Column('date')
+  @Column('datetime')
   date: Date;
 
   @Column({ nullable: true, type: 'text' })

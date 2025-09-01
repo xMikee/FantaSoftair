@@ -323,7 +323,7 @@ body {
 .ranking-med,
 .ranking-medal {
     width: 100%;
-    max-width: 30px;
+    max-width: 45px;
 }
 .listplayers{
     max-height: 250px;
@@ -800,4 +800,51 @@ body {
     background: rgba(160, 174, 192, 0.2);
     color: #a0aec0;
     border: 1px solid #a0aec0;
+}
+
+/* Countdown Styles */
+.countdown-container {
+    margin-bottom: 30px;
+}
+
+.countdown-card {
+    background: linear-gradient(135deg, #6d6c5a 0%, #666456 100%);
+    border-radius: 15px;
+    padding: 25px;
+    text-align: center;
+    color: white;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.countdown-card h3 {
+    font-size: 1.2em;
+    margin-bottom: 10px;
+    opacity: 0.9;
+}
+
+.event-name {
+    font-size: 1.1em;
+    font-weight: bold;
+    margin-bottom: 15px;
+    color: #fff;
+}
+
+.countdown-display {
+    font-size: 2.5em;
+    font-weight: bold;
+    font-family: 'Courier New', monospace;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    letter-spacing: 2px;
+}
+
+@media (max-width: 768px) {
+    .countdown-display {
+        font-size: 1.8em;
+    }
+    
+    .countdown-card {
+        padding: 20px;
+    }
 }
