@@ -265,9 +265,9 @@ function updateClassifica() {
     
     rankingList.innerHTML = '';
 
-    let firstPosition = 'generale.png';
-    let secondPosition = 'colonnello.png';
-    let thirdPosition = 'capitano.png';
+    let firstPosition = 'primo.jpg';
+    let secondPosition = 'secondo.jpg';
+    let thirdPosition = 'terzo.jpg';
 
 
 
@@ -282,9 +282,9 @@ function updateClassifica() {
             medalHtml = `<img src="img/${secondPosition}" alt="2°" class="ranking-med"/>`;
         } else if (index === 2) {
             medalHtml = `<img src="img/${thirdPosition}" alt="3°" class="ranking-med"/>`;
-        }else if (index === ranking.length - 1){
+        }/*else if (index === ranking.length - 1){
             medalHtml = `<img src="img/soldato.png" alt="3°" class="ranking-med"/>`;
-        }else{
+        }*/else{
             medalHtml = index+1;
         }
         rankingItem.innerHTML = `    
@@ -544,6 +544,7 @@ async function updateMyUserCredits(userId) {
     try {
         const user = users.find(u => u.id == userId);
         if (user) {
+            document.getElementById('username').textContent = user.name;
             document.getElementById('my-user-credits').style.display = 'block';
             document.getElementById('my-credits-amount').textContent = user.credits;
         }

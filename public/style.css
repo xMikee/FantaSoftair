@@ -6,7 +6,9 @@
 
 body {
     font-family: 'Arial', sans-serif;
-    background: url('../img/multicam.jpg');
+    /*background: url('../img/multicam.jpg');*/
+    background: #76785E;
+    background: radial-gradient(circle, rgba(118, 120, 94, 1) 58%, rgba(87, 84, 69, 0.91) 80%);
     min-height: 100vh;
     color: #333;
 }
@@ -238,7 +240,7 @@ body {
 }
 
 .btn {
-    background: linear-gradient(135deg, #23a712 0%, #50a94866 100%);
+    background: #CFBD8D;
     color: white;
     border: none;
     padding: 12px 25px;
@@ -257,11 +259,11 @@ body {
 }
 
 .btn-success {
-    background: linear-gradient(45deg, #48bb78, #38a169);
+    background: #CFBD8D;
 }
 
 .btn-danger {
-    background: linear-gradient(45deg, #f56565, #e53e3e);
+    background: #cb230b;
 }
 
 .table {
@@ -282,7 +284,7 @@ body {
 }
 
 .table th {
-    background: linear-gradient(135deg, #23a712 0%, #50a94866 100%);
+    background: #CFBD8D;
     color: white;
     font-weight: bold;
 }
@@ -369,12 +371,12 @@ body {
 }
 
 .market-player-value {
-    color: #667eea;
+    color: #546145;
     font-weight: bold;
 }
 
 .credits {
-    background: linear-gradient(45deg, #48bb78, #38a169);
+    background: #96483d;
     color: white;
     padding: 15px;
     border-radius: 10px;
@@ -698,7 +700,7 @@ body {
 
 #protected-section-name {
     font-weight: bold;
-    color: #667eea;
+    color: #546145;
 }
 
 @keyframes modalSlideIn {
