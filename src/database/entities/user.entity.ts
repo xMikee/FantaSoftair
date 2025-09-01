@@ -1,0 +1,26 @@
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, CreateDateColumn } from 'typeorm';
+import { Player } from './player.entity';
+
+@Entity('users')
+export class User {
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column({ unique: true })
+  name: string;
+
+  @Column({ default: 1000 })
+  credits: number;
+
+  @Column({ default: 0, name: 'total_points' })
+  totalPoints: number;
+
+  @Column({ nullable: true, name: 'team_password' })
+  teamPassword: string;
+
+  @CreateDateColumn({ name: 'created_at' })
+  createdAt: Date;
+
+  @OneToMany(() => Player, player => player.owner)
+  players: Player[];
+}

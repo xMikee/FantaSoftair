@@ -1,61 +1,59 @@
-# 🎯 Fanta Softair
+# 🎯 Fanta Softair A-Team
 
-Sistema di gestione fantasy per il club con mercato giocatori, punteggi e classifiche.
+Sistema di gestione fantasy per il club A-Team con mercato giocatori, punteggi e classifiche.
+
+## 🏗️ Architettura
+
+Il progetto è stato migrato da Express.js a **NestJS** per una maggiore scalabilità e manutenibilità.
+
+### **Backend**: NestJS + TypeORM
+- Framework modulare e scalabile
+- API REST documentate con Swagger
+- Database SQLite con TypeORM
+- Validazione automatica con class-validator
+
+### **Frontend**: Vanilla JavaScript
+- Interface responsive e mobile-first
+- Design moderno con gradiente e animazioni
+- Gestione stato client-side
 
 ## 🚀 Setup Rapido
 
-### 1. Clona/Crea il progetto
+### 1. Clona il progetto
 ```bash
-mkdir fanta-softair-ateam
-cd fanta-softair-ateam
+git clone https://github.com/xMikee/FantaSoftair.git
+cd FantaSoftair
 ```
 
-### 2. Inizializza Node.js
+### 2. Installa le dipendenze
 ```bash
-npm init -y
+npm install
 ```
 
-### 3. Installa le dipendenze
+### 3. Avvia l'applicazione
+
+#### Modalità Sviluppo NestJS (Consigliata)
 ```bash
-npm install express sqlite3 cors
-npm install --save-dev nodemon
+npm run start:dev
 ```
 
-### 4. Crea la struttura delle cartelle
-```
-fanta-softair-ateam/
-├── public/
-│   ├── index.html
-│   ├── style.css
-│   └── script.js
-├── server/
-│   ├── server.js
-│   └── database.js
-├── data/
-│   └── (il database si creerà automaticamente)
-├── package.json
-└── README.md
-```
-
-### 5. Copia i file
-- Copia il contenuto di `package.json` dall'artifact
-- Copia `server/server.js` dall'artifact
-- Copia `server/database.js` dall'artifact
-- Copia `public/index.html` dall'artifact
-- Copia `public/script.js` dall'artifact
-- Copia `public/style.css` dall'artifact
-
-### 6. Avvia l'applicazione
+#### Modalità Produzione
 ```bash
-# Modalità sviluppo (auto-restart)
-npm run dev
+# Build del progetto
+npm run build
 
-# Modalità produzione
+# Avvio produzione
 npm start
 ```
 
-### 7. Apri il browser
-Vai su: `http://localhost:3000`
+#### Modalità Legacy (Express.js)
+```bash
+npm run start:old
+```
+
+### 4. Apri il browser
+- **App**: `http://localhost:3000`
+- **API Docs**: `http://localhost:3000/api-docs`
 
 ## 📋 Funzionalità
 
@@ -120,24 +118,66 @@ Vai su: `http://localhost:3000`
 | Aiuto manovalanza | +3 | Supporto organizzativo |
 | Convocazione evento | +2 | Partecipazione speciale |
 
-## 🔧 **Configurazione WebStorm**
+## 🔧 **Configurazione Sviluppo**
 
-### **Scripts NPM**
-Aggiungi in WebStorm → Run/Debug Configurations:
-- **Start**: `npm start` (produzione)
-- **Dev**: `npm run dev` (sviluppo con auto-restart)
+### **Scripts NPM Disponibili**
+```json
+{
+  "build": "tsc",              // Compila TypeScript
+  "start": "node dist/main",   // Avvio produzione NestJS
+  "start:dev": "ts-node src/main.ts", // Sviluppo NestJS
+  "start:old": "node server/server.js", // Server Express legacy
+  "dev": "nodemon server/server.js",    // Sviluppo Express
+  "test": "echo \"Error: no test specified\" && exit 1"
+}
+```
 
-### **Debugging**
-1. Imposta breakpoints in WebStorm
-2. Avvia con `npm run dev`
-3. Attach debugger su porta 3000
+### **WebStorm Configuration**
+1. **TypeScript**: Configurazione automatica con `tsconfig.json`
+2. **Debugging NestJS**: 
+   - Avvia con `npm run start:dev`
+   - Attach debugger Node.js su porta 3000
+3. **Live Reload**: Utilizzare `npm run start:dev` per auto-restart
 
 ## 📁 **Struttura Database**
 
-### **Tabelle**
-- **users**: Associati con crediti e punti totali
-- **players**: Giocatori disponibili/acquistati
-- **events**: Storico eventi e punteggi
+### **Entità TypeORM**
+
+#### **User Entity** (`src/database/entities/user.entity.ts`)
+```typescript
+export class User {
+  id: number;
+  name: string;
+  credits: number;
+  totalScore: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+```
+
+#### **Player Entity** (`src/database/entities/player.entity.ts`)
+```typescript
+export class Player {
+  id: number;
+  name: string;
+  value: number;
+  ownerId: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+```
+
+#### **Event Entity** (`src/database/entities/event.entity.ts`)
+```typescript
+export class Event {
+  id: number;
+  playerId: number;
+  eventType: string;
+  points: number;
+  description: string;
+  date: Date;
+}
+```
 
 ### **Backup Database**
 Il database SQLite si trova in `data/fanta-softair.db`
@@ -166,31 +206,105 @@ pm2 start server/server.js --name "fanta-softair"
 ### **Docker** (opzionale)
 ```dockerfile
 FROM node:18-alpine
+
+# Installa dependencies per SQLite
+RUN apk add --no-cache python3 make g++
+
 WORKDIR /app
+
+# Copia package files
 COPY package*.json ./
+COPY tsconfig.json ./
+
+# Installa dependencies
 RUN npm install
-COPY . .
+
+# Copia sorgenti
+COPY src/ ./src/
+COPY public/ ./public/
+COPY server/ ./server/
+
+# Build TypeScript
+RUN npm run build
+
+# Crea directory data
+RUN mkdir -p data
+
 EXPOSE 3000
+
+# Avvia NestJS
 CMD ["npm", "start"]
 ```
 
 ## 🛠️ **Sviluppo**
 
-### **API Endpoints**
-- `GET /api/users` - Lista associati
-- `GET /api/players` - Lista giocatori
-- `GET /api/ranking` - Classifica
-- `GET /api/events` - Storico eventi
-- `POST /api/authenticate` - Autenticazione amministratore
-- `POST /api/buy-player` - Acquista giocatore
-- `POST /api/sell-player` - Vendi giocatore
-- `POST /api/update-score` - Aggiorna punteggi
-- `POST /api/reset` - Reset sistema
+### **Struttura del Progetto**
+```
+FantaSoftair/
+├── src/                     # Codice sorgente NestJS
+│   ├── admin/              # Modulo amministrazione
+│   ├── auth/               # Modulo autenticazione
+│   ├── database/           # Configurazione database
+│   │   └── entities/       # Entità TypeORM
+│   ├── events/             # Modulo eventi
+│   ├── market/             # Modulo mercato
+│   ├── players/            # Modulo giocatori
+│   ├── users/              # Modulo utenti
+│   ├── app.module.ts       # Modulo principale
+│   └── main.ts            # Entry point NestJS
+├── server/                 # Server Express.js legacy
+├── public/                 # Frontend statico
+│   ├── img/               # Immagini e asset
+│   ├── index.html         # Interfaccia principale
+│   ├── script.js          # Logica frontend
+│   └── style.css          # Stili CSS
+├── data/                   # Database SQLite
+└── dist/                   # Build output
+```
+
+### **API Endpoints NestJS**
+Documentazione completa disponibile su: `http://localhost:3000/api-docs`
+
+#### **Autenticazione**
+- `POST /auth/login` - Login amministratore
+
+#### **Utenti**
+- `GET /users` - Lista associati
+- `GET /users/:id` - Dettaglio utente
+
+#### **Giocatori**
+- `GET /players` - Lista giocatori
+- `GET /players/available` - Giocatori disponibili
+
+#### **Mercato**
+- `POST /market/buy` - Acquista giocatore
+- `POST /market/sell` - Vendi giocatore
+
+#### **Eventi**
+- `GET /events` - Storico eventi
+- `GET /events/user/:userId` - Eventi per utente
+
+#### **Amministrazione**
+- `POST /admin/score` - Aggiorna punteggi
+- `POST /admin/reset` - Reset sistema
 
 ### **Aggiungere nuove funzionalità**
-1. Modifica `server/server.js` per nuove API
-2. Aggiorna `public/script.js` per il frontend
-3. Modifica `server/database.js` per nuove tabelle
+
+#### **Backend NestJS**
+1. Crea nuovi moduli con `nest generate module nome-modulo`
+2. Genera controller: `nest generate controller nome-modulo`
+3. Genera service: `nest generate service nome-modulo`
+4. Definisci entità in `src/database/entities/`
+5. Aggiorna `app.module.ts` per importare nuovi moduli
+
+#### **Frontend**
+1. Aggiorna `public/script.js` per nuove funzionalità
+2. Modifica `public/style.css` per nuovi stili
+3. Estendi `public/index.html` per nuovi elementi UI
+
+#### **Database**
+- Le migrazioni sono automatiche con TypeORM
+- Modifica le entità per cambiare la struttura DB
 
 ## 📱 **Mobile**
 L'app è completamente responsive e funziona su tutti i dispositivi.
@@ -241,8 +355,11 @@ Per problemi o miglioramenti, contatta l'admin del club!
 ## 🎯 **Quick Start Commands**
 
 ```bash
-# Setup completo in un comando
-git clone [your-repo] fanta-softair-ateam && cd fanta-softair-ateam && npm install && npm run dev
+# Setup completo NestJS
+git clone https://github.com/xMikee/FantaSoftair.git && cd FantaSoftair && npm install && npm run start:dev
+
+# Setup Express.js legacy
+git clone https://github.com/xMikee/FantaSoftair.git && cd FantaSoftair && npm install && npm run start:old
 ```
 
 ## 🔄 **Aggiornamenti Futuri**
@@ -258,11 +375,15 @@ git clone [your-repo] fanta-softair-ateam && cd fanta-softair-ateam && npm insta
 - [ ] **Premi**: Sistema ricompense automatico
 
 ### **Miglioramenti Tecnici**
+- [x] **NestJS Framework**: Migrazione completata
+- [x] **TypeORM**: ORM moderno per database
+- [x] **Swagger Documentation**: API docs automatiche
 - [ ] **Redis Cache**: Per performance migliori
 - [ ] **WebSocket**: Aggiornamenti in tempo reale
 - [ ] **API Rate Limiting**: Protezione da abusi
 - [ ] **Backup Automatico**: Salvataggi programmati
-- [ ] **Monitoring**: Log e metriche sistema
+- [ ] **Test Suite**: Unit e integration tests
+- [ ] **CI/CD Pipeline**: Deploy automatizzato
 
 ## 🐛 **Troubleshooting**
 

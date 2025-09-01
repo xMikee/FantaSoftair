@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Squadre - Fanta Softair A-Team</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+    <!-- Header Component -->
+    <div id="header-container"></div>
+
+    <div id="loading" class="loading">
+        <p>Caricamento dati in corso...</p>
+    </div>
+
+    <!-- Alert Container -->
+    <div id="alert-container"></div>
+
+    <!-- Sezione Squadre -->
+    <div id="squadre" class="section active">
+        <h2>👥 Tutte le Squadre</h2>
+        <div id="all-teams"></div>
+        <!-- Footer Component -->
+        <div id="footer-container"></div>
+    </div>
+
+</div>
+
+<script src="script.js?v=1725392400"></script>
+<script>
+    // Show only squadre section on page load
+    document.addEventListener('DOMContentLoaded', async function() {
+        try {
+            // Load components
+            await loadComponent('header', 'header-container');
+            await loadComponent('footer', 'footer-container');
+            
+            await loadInitialData();
+            await loadAllTeamsData();
+            hideLoading();
+            showAlert('Squadre caricate con successo!', 'success');
+        } catch (error) {
+            console.error('Errore nel caricamento delle squadre:', error);
+            showAlert('Errore nel caricamento delle squadre', 'error');
+            hideLoading();
+        }
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eventi - Fanta Softair A-Team</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+    <!-- Header Component -->
+    <div id="header-container"></div>
+
+    <div id="loading" class="loading">
+        <p>Caricamento eventi in corso...</p>
+    </div>
+
+    <!-- Sezione Eventi -->
+    <div id="events" class="section active">
+        <h2>📅 Eventi Fanta Softair</h2>
+        
+        <div class="events-tabs" style="margin-bottom: 20px;">
+            <button id="tab-upcoming" class="tab-btn active" onclick="switchTab('upcoming')"> Prossimi Eventi</button>
+            <button id="tab-past" class="tab-btn" onclick="switchTab('past')"> Eventi Passati</button>
+        </div>
+
+        <div id="upcoming-events" class="events-tab-content active">
+            <div class="card">
+                <h3> Prossimi Eventi</h3>
+                <div id="upcoming-events-list">
+                    <p>Caricamento eventi in corso...</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="past-events" class="events-tab-content">
+            <div class="card">
+                <h3> Eventi Passati</h3>
+                <div id="past-events-list">
+                    <p>Caricamento eventi in corso...</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="no-events" class="card" style="display: none; text-align: center; color: #6c757d;">
+            <h3>🎯 Nessun Evento</h3>
+            <p>Non ci sono eventi disponibili al momento.</p>
+            <p>Torna più tardi per scoprire i prossimi appuntamenti del Fanta Softair A-Team!</p>
+        </div>
+    </div>
+
+    <!-- Footer Component -->
+    <div id="footer-container"></div>
+</div>
+
+<div id="alert-container"></div>
+
+<script src="script.js?v=1725392400"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async function() {
+    try {
+        // Load components
+        await loadComponent('header', 'header-container');
+        await loadComponent('footer', 'footer-container');
+        
+        await loadInitialData();
+        await loadPublicEvents();
+        hideLoading();
+    } catch (error) {
+        console.error('Errore nel caricamento della pagina eventi:', error);
+        showAlert('Errore nel caricamento degli eventi: ' + error.message, 'error');
+        hideLoading();
+    }
+});
+
+let publicGameEvents = [];
+let currentTab = 'upcoming';
+
+async function loadPublicEvents() {
+    try {
+        const [upcomingResponse, pastResponse] = await Promise.all([
+            fetch('/api/eventi/upcoming'),
+            fetch('/api/eventi/past')
+        ]);
+
+        if (!upcomingResponse.ok || !pastResponse.ok) {
+            throw new Error('Errore nel caricamento degli eventi');
+        }
+
+        const upcomingEvents = await upcomingResponse.json();
+        const pastEvents = await pastResponse.json();
+
+        publicGameEvents = {
+            upcoming: upcomingEvents,
+            past: pastEvents
+        };
+
+        updateEventsDisplay();
+    } catch (error) {
+        console.error('Errore nel caricamento degli eventi:', error);
+        showAlert('Errore nel caricamento degli eventi: ' + error.message, 'error');
+        
+        // Show no events message
+        document.getElementById('no-events').style.display = 'block';
+        document.getElementById('upcoming-events').style.display = 'none';
+        document.getElementById('past-events').style.display = 'none';
+    }
+}
+
+function updateEventsDisplay() {
+    updateUpcomingEvents();
+    updatePastEvents();
+    
+    // Show/hide sections based on content
+    const hasUpcoming = publicGameEvents.upcoming && publicGameEvents.upcoming.length > 0;
+    const hasPast = publicGameEvents.past && publicGameEvents.past.length > 0;
+    
+    if (!hasUpcoming && !hasPast) {
+        document.getElementById('no-events').style.display = 'block';
+        document.getElementById('upcoming-events').style.display = 'none';
+        document.getElementById('past-events').style.display = 'none';
+        document.querySelector('.events-tabs').style.display = 'none';
+    } else {
+        document.getElementById('no-events').style.display = 'none';
+        document.querySelector('.events-tabs').style.display = 'flex';
+    }
+}
+
+function updateUpcomingEvents() {
+    const upcomingEventsList = document.getElementById('upcoming-events-list');
+    const events = publicGameEvents.upcoming || [];
+    
+    if (events.length === 0) {
+        upcomingEventsList.innerHTML = '<p style="color: #6c757d; text-align: center;">Non ci sono eventi futuri programmati.</p>';
+        return;
+    }
+
+    let html = '';
+    events.forEach(event => {
+        html += createPublicEventHTML(event, true);
+    });
+    
+    upcomingEventsList.innerHTML = html;
+}
+
+function updatePastEvents() {
+    const pastEventsList = document.getElementById('past-events-list');
+    const events = publicGameEvents.past || [];
+    
+    if (events.length === 0) {
+        pastEventsList.innerHTML = '<p style="color: #6c757d; text-align: center;">Non ci sono eventi passati da mostrare.</p>';
+        return;
+    }
+
+    let html = '';
+    events.forEach(event => {
+        html += createPublicEventHTML(event, false);
+    });
+    
+    pastEventsList.innerHTML = html;
+}
+
+function createPublicEventHTML(event, isUpcoming) {
+    const date = new Date(event.date);
+    const formattedDate = date.toLocaleDateString('it-IT', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+
+    const formattedTime = date.toLocaleTimeString('it-IT', {
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+
+    const statusIcon = isUpcoming ? '🔮' : '✅';
+    const statusClass = isUpcoming ? 'upcoming-event' : 'past-event';
+    const borderColor = isUpcoming ? '#28a745' : '#6c757d';
+    const bgGradient = isUpcoming 
+        ? 'linear-gradient(135deg, #f8f9fa 0%, #e9f7ef 100%)'
+        : 'linear-gradient(135deg, #f8f9fa 0%, #f1f3f4 100%)';
+
+    return `
+        <div class="event-card ${statusClass}" style="
+            background: ${bgGradient};
+            border: 1px solid #dee2e6;
+            border-left: 5px solid ${borderColor};
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.15)'" 
+           onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(0,0,0,0.1)'">
+            <div class="event-header" style="display: flex; align-items: center; margin-bottom: 10px;">
+                <div class="event-icon" style="font-size: 24px; margin-right: 15px;">${statusIcon}</div>
+                <div class="event-title" style="flex: 1;">
+                    <h4 style="margin: 0; color: #2c3e50; font-size: 18px;">${event.name}</h4>
+                    <div class="event-date" style="color: #6c757d; font-size: 14px; margin-top: 5px;">
+                        <strong>📅 ${formattedDate}</strong>
+                        ${event.date.includes('T') ? ` - ⏰ ${formattedTime}` : ''}
+                    </div>
+                </div>
+            </div>
+            ${event.description ? `
+                <div class="event-description" style="
+                    color: #495057;
+                    font-size: 15px;
+                    line-height: 1.5;
+                    background: rgba(255,255,255,0.7);
+                    padding: 12px;
+                    border-radius: 6px;
+                    border-left: 3px solid ${borderColor};
+                ">
+                    <em>"${event.description}"</em>
+                </div>
+            ` : ''}
+        </div>
+    `;
+}
+
+function switchTab(tab) {
+    currentTab = tab;
+    
+    // Update tab buttons
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.getElementById(`tab-${tab}`).classList.add('active');
+    
+    // Update tab content
+    document.querySelectorAll('.events-tab-content').forEach(content => content.classList.remove('active'));
+    document.getElementById(`${tab}-events`).classList.add('active');
+}
+</script>
+
+<style>
+.events-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    justify-content: center;
+}
+
+.tab-btn {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    padding: 10px 20px;
+    border-radius: 25px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    font-size: 14px;
+}
+
+.tab-btn:hover {
+    background: #e9ecef;
+    transform: translateY(-1px);
+}
+
+.tab-btn.active {
+    background: #a2915e;
+    color: white;
+    border-color: #a2915e;
+}
+
+.events-tab-content {
+    display: none;
+}
+
+.events-tab-content.active {
+    display: block;
+}
+
+@media (max-width: 768px) {
+    .events-tabs {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .tab-btn {
+        width: 200px;
+        text-align: center;
+    }
+}
+</style>
+</body>
+</html>

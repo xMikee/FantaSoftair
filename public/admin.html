@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Fanta Softair A-Team</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+    <!-- Header Component -->
+    <div id="header-container"></div>
+
+    <div id="loading" class="loading">
+        <p>Caricamento dati in corso...</p>
+    </div>
+
+    <!-- Sezione Admin -->
+    <div id="admin" class="section active">
+        <h2>⚙️ Pannello Amministrazione</h2>
+        <div class="grid">
+            <div class="card mercato">
+                <h3>🛒 Gestione Mercato</h3>
+                <p style="margin-bottom: 15px; color: #718096;">
+                    Gestione completa del mercato e assegnazione giocatori
+                </p>
+                <div class="row m-0">
+                    <div class="box_sx">
+                        <div class="form-group">
+                            <label>Seleziona Squadra:</label>
+                            <select id="admin-team-select">
+                                <option value="">Scegli squadra...</option>
+                            </select>
+                        </div>
+                        <div id="admin-team-credits" class="credits">
+                            Crediti disponibili: <span id="admin-credits-amount">1000</span>
+                        </div>
+                        <div class="form-group">
+                            <label>Giocatori Disponibili:</label>
+                            <div id="admin-market-list" style="max-height: 300px; overflow-y: auto; border: 1px solid #e2e8f0; padding: 10px; border-radius: 4px;">
+                                Seleziona una squadra per vedere i giocatori disponibili
+                            </div>
+                        </div>
+                    </div>
+                    <div class="box_squad">
+                        <div id="admin-team-info" style="display: none; margin: 15px 0;">
+                            <div id="admin-team-players" style="margin-top: 10px;">
+                                <h4>Giocatori in squadra (0/11)</h4>
+                                <div id="admin-team-list"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="grid grid-2">
+                <div class="card">
+                    <h3>Aggiorna Punteggi</h3>
+                    <div class="form-group">
+                        <label>Seleziona Giocatore:</label>
+                        <select id="admin-player-select">
+                            <option value="">Scegli giocatore...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Tipo Evento:</label>
+                        <select id="event-type">
+                            <option value="">Seleziona evento...</option>
+                            <option value="+7">Cornetti senza lattosio (+7)</option>
+                            <option value="+6">Cornetti + salmone (+6)</option>
+                            <option value="+5">Cornetti sul campo (+5)</option>
+                            <option value="+5">Cassa peroni fresca (+5)</option>
+                            <option value="+5">Presenze cumulative (+5)</option>
+                            <option value="+5">Crea scenografia (+5)</option>
+                            <option value="+4">Presente (+4)</option>
+                            <option value="+3">Crea obiettivo speciale (+3)</option>
+                            <option value="+3">Aiuto manovalanza (+3)</option>
+                            <option value="+3">Silent kill (+3)</option>
+                            <option value="+2">In anticipo organizzazione (+2)</option>
+                            <option value="+2">Trova equipaggiamento (+2)</option>
+                            <option value="+2">Convocazione evento (+2)</option>
+                            <option value="+1">Kill in pistola (+1) x Kill</option>
+                            <option value="+1">Kill a 1 colpo (+1)</option>
+                            <option value="">------- MALUS --------</option>
+                            <option value="-6">Consiglio disciplinare (-6)</option>
+                            <option value="-5">Bidona domenica (-5)</option>
+                            <option value="-5">Sporca il bosco (-5)</option>
+                            <option value="-3">Perde equipaggiamento (-3)</option>
+                            <option value="-3">Assenza radio/scarica (-3)</option>
+                            <option value="-2">Non mangia carne in compagnia (-2)</option>
+                            <option value="-2">Assente domenica con avviso (-2)</option>
+                            <option value="-2">Sgrana/non funziona fucile (-2)</option>
+                            <option value="-2">Non offre dopo compleanno (-2)</option>
+                            <option value="-2">Non mette presenza (-2)</option>
+                            <option value="-2">Batteria scarica (-2)</option>
+                            <option value="-2">Sgamare (-2)</option>
+                            <option value="-1">Ritardo/uscita anticipata (-1)</option>
+                            <option value="-1">Senza pallini sul campo (-1)</option>
+                            <option value="-1">Patch alta visibilità (-1)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Punti personalizzati (opzionale):</label>
+                        <input type="number" id="custom-points" placeholder="Es: +5 o -3">
+                    </div>
+                    <div class="form-group">
+                        <label>Descrizione:</label>
+                        <input type="text" id="event-description" placeholder="Descrizione dell'evento">
+                    </div>
+                    <button class="btn btn-success" onclick="updatePlayerScore()">Aggiorna Punteggio</button>
+                </div>
+                <div class="card">
+                    <h3>Storico Eventi</h3>
+                    <div id="event-history"></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Reset Sistema</h3>
+                <p style="margin-bottom: 15px; color: #718096;">
+                    Attenzione: queste operazioni sono irreversibili!
+                </p>
+                <button class="btn btn-danger" onclick="resetSystem('market')">Reset Mercato</button>
+                <button class="btn btn-danger" onclick="resetSystem('scores')">Reset Punteggi</button>
+                <button class="btn btn-danger" onclick="resetSystem('all')">Reset Completo</button>
+            </div>
+            <div class="card">
+                <h3>Gestione Password</h3>
+                <p style="margin-bottom: 15px; color: #718096;">
+                    Visualizza le password di tutti gli utenti
+                </p>
+                <button class="btn btn-info" onclick="showAllPasswords()">Mostra Tutte le Password</button>
+                <div id="passwords-list" style="margin-top: 15px; display: none;">
+                    <div id="passwords-content"></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>📅 Gestione Eventi</h3>
+                <p style="margin-bottom: 15px; color: #718096;">
+                    Crea, modifica ed elimina eventi del sistema Fanta
+                </p>
+                
+                <div class="form-group">
+                    <label>Nome Evento:</label>
+                    <input type="text" id="event-name" placeholder="Es: Battaglia di Primavera 2025">
+                </div>
+                <div class="form-group">
+                    <label>Data e Ora Evento:</label>
+                    <input type="datetime-local" id="event-date">
+                </div>
+                <div class="form-group">
+                    <label>Descrizione (opzionale):</label>
+                    <textarea id="event-desc" rows="3" style="width: 100%" placeholder="Descrizione dell'evento..."></textarea>
+                </div>
+                <button class="btn btn-success" onclick="createGameEvent()">Crea Evento</button>
+                
+                <div class="events-list" style="margin-top: 20px;">
+                    <h4>Eventi Esistenti</h4>
+                    <div id="game-events-list"></div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Footer Component -->
+        <div id="footer-container"></div>
+    </div>
+
+    <div id="alert-container"></div>
+</div>
+
+<!-- Modal di autenticazione -->
+<div id="auth-modal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <h3>🔒 Autenticazione Amministratore</h3>
+        <p>Inserisci la password per accedere alla sezione <span id="protected-section-name"></span>:</p>
+        <form id="auth-form">
+            <div class="form-group">
+                <input type="password" id="admin-password" placeholder="Password amministratore" required>
+            </div>
+            <div class="form-buttons">
+                <button type="submit" class="btn btn-success">Accedi</button>
+                <button type="button" class="btn" onclick="closeAuthModal()">Annulla</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="script.js?v=1725392400"></script>
+<script>
+    // Show only admin section on page load and require authentication
+    document.addEventListener('DOMContentLoaded', async function() {
+        try {
+            // Load components
+            await loadComponent('header', 'header-container');
+            await loadComponent('footer', 'footer-container');
+            
+            // Check admin authentication
+            const savedAdminPassword = localStorage.getItem('adminPassword');
+            if (savedAdminPassword) {
+                adminPassword = savedAdminPassword;
+                isAuthenticated = true;
+                
+                // Load admin panel data
+                await loadAdminPanel();
+            } else {
+                // Show auth modal if not authenticated
+                showAuthModal('admin');
+                return;
+            }
+        } catch (error) {
+            console.error('Errore nel caricamento del pannello admin:', error);
+            showAlert('Errore nel caricamento del pannello admin', 'error');
+            hideLoading();
+        }
+    });
+
+    // Function to load all admin panel data
+    async function loadAdminPanel() {
+        try {
+            await loadInitialData();
+            updateUI();
+            updateAdminTeamSelect();
+            updateAdminPlayerSelect();
+            await loadGameEvents();
+            
+            // Make sure the admin section is visible
+            const adminSection = document.getElementById('admin');
+            if (adminSection) {
+                adminSection.classList.add('active');
+            }
+            
+            hideLoading();
+            showAlert('Pannello admin caricato con successo!', 'success');
+        } catch (error) {
+            console.error('Errore caricamento pannello admin:', error);
+            showAlert('Errore nel caricamento del pannello admin', 'error');
+            hideLoading();
+        }
+    }
+
+    // Listen for the custom authentication event
+    window.addEventListener('adminAuthenticated', async function() {
+        console.log('Admin authenticated event received');
+        try {
+            await loadAdminPanel();
+        } catch (error) {
+            console.error('Error in adminAuthenticated handler:', error);
+        }
+    });
+</script>
+</body>
+</html>

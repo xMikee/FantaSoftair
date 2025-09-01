@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Classifica - Fanta Softair A-Team</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+    <!-- Header Component -->
+    <div id="header-container"></div>
+
+    <div id="loading" class="loading">
+        <p>Caricamento dati in corso...</p>
+    </div>
+
+    <!-- Alert Container -->
+    <div id="alert-container"></div>
+
+    <!-- Sezione Classifica -->
+    <div id="classifica" class="section active">
+        <h2>🏆 Classifica Softgunners</h2>
+        
+        <!-- Countdown per il prossimo evento -->
+        <div id="countdown-container" class="countdown-container" style="display: none;">
+            <div class="countdown-card">
+                <h3>⏰ Prossimo Evento</h3>
+                <div id="countdown-event-name" class="event-name"></div>
+                <div id="countdown-display" class="countdown-display"></div>
+            </div>
+        </div>
+        
+        <div id="ranking-list"></div>
+
+
+        <div id="ranking-best-player"></div>
+        <div id="ranking-loser-player"></div>
+        <!-- Footer Component -->
+        <div id="footer-container"></div>
+    </div>
+
+</div>
+
+<script src="script.js?v=1725392400"></script>
+<script>
+    // Show only classifica section on page load
+    document.addEventListener('DOMContentLoaded', async function() {
+        try {
+            // Load components
+            await loadComponent('header', 'header-container');
+            await loadComponent('footer', 'footer-container');
+            
+            await loadInitialData();
+            updateUI();
+            hideLoading();
+            showAlert('Classifica caricata con successo!', 'success');
+        } catch (error) {
+            console.error('Errore nel caricamento della classifica:', error);
+            showAlert('Errore nel caricamento della classifica', 'error');
+            hideLoading();
+        }
+    });
+</script>
+</body>
+</html>
