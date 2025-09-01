@@ -38,6 +38,7 @@ let userToken = null;
 let currentUserInfo = null;
 let selectedUserForLogin = null;
 let adminPassword = null;
+let topPlayer = null;
 
 const API_BASE = window.location.origin + '/api';
 
@@ -140,6 +141,7 @@ async function loadInitialData() {
     users = await apiCall('/users');
     ranking = await apiCall('/ranking');
     events = await apiCall('/events');
+    topPlayer = await apiCall('/players/top-player');
     await loadPublicGameEvents();
 }
 
@@ -150,11 +152,29 @@ function hideLoading() {
     }
 }
 
+function updateTopPlayer() {
+    const topPlayerDiv = document.getElementById('ranking-best-player');
+    if(!topPlayerDiv || !topPlayer) {
+        return;
+    }
+
+    topPlayerDiv.innerHTML = `
+    <div class="top-player-card">
+              <h3>🏅 Miglior Giocatore</h3>
+              <div class="top-player-info">
+                  <div class="player-name">${topPlayer.name}</div>
+                  <div class="player-points">${topPlayer.currentPoints} punti</div>
+              </div>
+          </div>
+    `;
+}
+
 function updateUI() {
     updateUserSelect();
     updateAdminPlayerSelect();
     updateAdminTeamSelect();
     updateClassifica();
+    updateTopPlayer();
     updateEventHistory();
 }
 
@@ -288,6 +308,9 @@ async function updateAdminTeamInfo() {
 
 function updateClassifica() {
     const rankingList = document.getElementById('ranking-list');
+    const rankingBest = document.getElementById('ranking-best-player');
+    const rankingLoser = document.getElementById('ranking-loser-player');
+
     if (!rankingList) {
         return;
     }

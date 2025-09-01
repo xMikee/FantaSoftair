@@ -159,4 +159,14 @@ export class PlayersService {
       }
     }
   }
+
+    async getTopPlayer():Promise<Player> {
+        return this.playersRepository
+            .createQueryBuilder('player')
+            .leftJoinAndSelect('player.owner','owner')
+            .orderBy('player.currentPoints','DESC')
+            .limit(1)
+            .getOne()
+
+    }
 }

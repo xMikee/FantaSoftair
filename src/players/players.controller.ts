@@ -66,4 +66,9 @@ export class PlayersController {
     
     return this.playersService.getSelectedLineup(userIdNum);
   }
+
+  @Get('top-player')
+    async getTopPlayer() {
+      return this.playersService.getTopPlayer();
+  }
 }
