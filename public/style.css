@@ -58,6 +58,15 @@ body {
     position: relative;
     position: unset;
 }
+.inner_card_team {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    border-bottom: 1px solid #e2e8f0;
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+}
 
 /* Hamburger Menu Styles */
 .hamburger {

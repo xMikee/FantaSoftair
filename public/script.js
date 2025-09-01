@@ -808,7 +808,7 @@ async function updateAllTeams() {
 
             teamCard.innerHTML = `
                 <h3>${user.name}</h3>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                <div class="inner_card_team">
                     <span><strong>Squadra:</strong> ${user.team_size}/11</span>
                     <span><strong>In Campo:</strong> ${user.lineup_size || 0}/8</span>
                     <span><strong>Crediti:</strong> ${user.credits}</span>
