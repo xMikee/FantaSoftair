@@ -1323,3 +1323,58 @@ async function showAllPasswords() {
         showAlert('Errore: ' + error.message, 'error');
     }
 }
+
+// Hamburger Menu Functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const hamburger = document.getElementById('hamburger');
+    const navMenu = document.getElementById('nav-menu');
+    const navOverlay = document.getElementById('nav-overlay');
+
+    if (hamburger && navMenu && navOverlay) {
+        // Toggle mobile menu
+        function toggleMobileMenu() {
+            hamburger.classList.toggle('active');
+            navMenu.classList.toggle('active');
+            navOverlay.classList.toggle('active');
+            
+            // Prevent body scroll when menu is open
+            if (navMenu.classList.contains('active')) {
+                document.body.style.overflow = 'hidden';
+            } else {
+                document.body.style.overflow = '';
+            }
+        }
+
+        // Close mobile menu
+        function closeMobileMenu() {
+            hamburger.classList.remove('active');
+            navMenu.classList.remove('active');
+            navOverlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        // Event listeners
+        hamburger.addEventListener('click', toggleMobileMenu);
+        navOverlay.addEventListener('click', closeMobileMenu);
+
+        // Close menu when clicking on navigation links (mobile)
+        const navButtons = navMenu.querySelectorAll('.nav-btn');
+        navButtons.forEach(button => {
+            button.addEventListener('click', closeMobileMenu);
+        });
+
+        // Close menu on window resize if desktop size
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 768) {
+                closeMobileMenu();
+            }
+        });
+
+        // Close menu on escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && navMenu.classList.contains('active')) {
+                closeMobileMenu();
+            }
+        });
+    }
+});

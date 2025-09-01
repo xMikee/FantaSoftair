@@ -15,11 +15,21 @@
     </div>
 
     <div class="nav">
-        <button class="nav-btn" onclick="location.href='classifica.html'">Classifica</button>
-        <button class="nav-btn active" onclick="location.href='mia-squadra.html'">La Mia Squadra</button>
-        <button class="nav-btn" onclick="location.href='squadre.html'">Squadre</button>
-        <button class="nav-btn" onclick="location.href='admin.html'">🔒Admin</button>
+        <div class="hamburger" id="hamburger">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+        <div class="nav-menu" id="nav-menu">
+            <button class="nav-btn" onclick="location.href='classifica.html'">Classifica</button>
+            <button class="nav-btn active" onclick="location.href='mia-squadra.html'">La Mia Squadra</button>
+            <button class="nav-btn" onclick="location.href='squadre.html'">Squadre</button>
+            <button class="nav-btn" onclick="location.href='admin.html'">🔒Admin</button>
+        </div>
     </div>
+    
+    <!-- Mobile menu overlay -->
+    <div class="nav-overlay" id="nav-overlay"></div>
 
     <div id="loading" class="loading">
         <p>Caricamento dati in corso...</p>
