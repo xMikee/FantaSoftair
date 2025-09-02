@@ -76,7 +76,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
         
         hideLoading();
-        showAlert('Applicazione caricata con successo!', 'success');
+        //showAlert('Applicazione caricata con successo!', 'success');
     } catch (error) {
         console.error('Errore nell\'inizializzazione:', error);
         showAlert(`Errore nel caricamento dell'applicazione: ${error.message}`, 'error');
@@ -1814,7 +1814,7 @@ async function loadGameEventsForDayClosure() {
 
                 if (events.length === 0) {
                     eventSelect.innerHTML = '<option value="">Nessun evento disponibile per la chiusura</option>';
-                    showAlert('Non ci sono eventi aperti disponibili per la chiusura. Tutti gli eventi sono già stati chiusi o non esistono eventi.', 'info');
+                    //showAlert('Non ci sono eventi aperti disponibili per la chiusura. Tutti gli eventi sono già stati chiusi o non esistono eventi.', 'info');
                 }
             }
         }
