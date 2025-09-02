@@ -1,23 +1,53 @@
-# 🎯 Fanta Softair A-Team
+# 🎯 FantaSoftair A-Team - Sistema Fantasy Softair Completo
 
-Sistema di gestione fantasy per il club A-Team con mercato giocatori, punteggi e classifiche.
+Sistema avanzato di gestione fantasy per il club A-Team con mercato giocatori, punteggi per eventi, classifiche in tempo reale e admin panel completo.
+
+## 🚀 Nuove Funzionalità Implementate
+
+### ✨ Sistema Eventi e Punteggi Avanzato
+- **Eventi Gioco**: Creazione e gestione eventi con date programmate
+- **Punteggi per Evento**: Assegnazione punteggi specifici per ogni evento
+- **Countdown Eventi**: Timer automatico per eventi in arrivo
+- **Storico Completo**: Visualizzazione cronologica di tutti gli eventi
+- **Classifiche per Evento**: Ranking specifico per ogni giocata
+
+### 🏆 Sistema Ranking Migliorato
+- **Top Player**: Classifica migliori giocatori per punteggio
+- **Ranking Utenti**: Classifica generale utenti con punteggi totali
+- **Punteggi Stagionali**: Tracciamento punti annuali separati
+- **Formazioni Salvate**: Snapshot formazioni per ogni evento
+
+### 📱 Interfaccia Utente Rinnovata
+- **Design Responsive**: Ottimizzato per mobile e desktop
+- **Cards Animate**: Effetti hover e transizioni fluide
+- **Layout Moderno**: Griglia responsive con gradients
+- **Countdown Visuale**: Timer eleganti per eventi futuri
+
+### 🔧 Architettura Migliorata
+- **NestJS Framework**: Backend scalabile e modulare
+- **TypeORM**: ORM avanzato per gestione database
+- **Swagger API**: Documentazione automatica endpoints
+- **Event Scoring Module**: Sistema dedicato calcolo punteggi
 
 ## 🏗️ Architettura
 
-Il progetto è stato migrato da Express.js a **NestJS** per una maggiore scalabilità e manutenibilità.
+### **Backend**: NestJS + TypeORM + SQLite
+- Framework modulare e altamente scalabile
+- API REST completamente documentate
+- Database SQLite con relazioni complesse
+- Validazione automatica e type safety
 
-### **Backend**: NestJS + TypeORM
-- Framework modulare e scalabile
-- API REST documentate con Swagger
-- Database SQLite con TypeORM
-- Validazione automatica con class-validator
+### **Frontend**: Vanilla JavaScript + CSS3
+- Interface responsive mobile-first
+- Design moderno con animazioni CSS
+- Gestione stato client-side ottimizzata
 
-### **Frontend**: Vanilla JavaScript
-- Interface responsive e mobile-first
-- Design moderno con gradiente e animazioni
-- Gestione stato client-side
+## 🚀 Setup e Installazione
 
-## 🚀 Setup Rapido
+### Prerequisiti
+- Node.js 18+
+- npm
+- SQLite3
 
 ### 1. Clona il progetto
 ```bash
@@ -30,9 +60,31 @@ cd FantaSoftair
 npm install
 ```
 
-### 3. Avvia l'applicazione
+### 3. Crea il Database
 
-#### Modalità Sviluppo NestJS (Consigliata)
+**IMPORTANTE**: Il database non è incluso nel repository. Segui questi passaggi per crearlo:
+
+```bash
+# Crea la cartella data se non esiste
+mkdir -p data
+
+# Avvia l'applicazione in modalità development
+# TypeORM creerà automaticamente il database e le tabelle
+npm run start:dev
+```
+
+Il database `fanta-softair.db` verrà creato automaticamente nella cartella `data/` al primo avvio.
+
+#### Popolamento Dati Iniziali (Opzionale)
+
+```bash
+# Se hai uno script di popolamento
+node populate-teams.js
+```
+
+### 4. Avvia l'Applicazione
+
+#### Modalità Sviluppo (Consigliata)
 ```bash
 npm run start:dev
 ```
@@ -43,587 +95,433 @@ npm run start:dev
 npm run build
 
 # Avvio produzione
-npm start
+npm run start:prod
 ```
 
-#### Modalità Legacy (Express.js)
-```bash
-npm run start:old
-```
+### 5. Accedi all'Applicazione
+- **App**: http://localhost:3000
+- **API Docs**: http://localhost:3000/api-docs (Swagger UI)
 
-### 4. Apri il browser
-- **App**: `http://localhost:3000`
-- **API Docs**: `http://localhost:3000/api-docs`
+## 📋 Funzionalità Complete
 
-## 📋 Funzionalità
+### 🔒 Sistema di Autenticazione
+- **Accesso Pubblico**: Classifiche e visualizzazione formazioni
+- **Admin Panel**: Gestione completa sistema (password protetto)
+- **JWT Authentication**: Tokens sicuri per sessioni admin
 
-### 🔒 **Sistema di Autenticazione**
-- **Accesso libero**: Classifica e visualizzazione squadre
-- **Password Admin**: `admin123` (per mercato e amministrazione)
-- **Auto-logout**: Le sessioni scadono alla chiusura del browser
-- **Protezione sezioni**: Mercato e Admin protetti da password
+### 🏆 Classifiche e Ranking
+- **Classifica Generale**: Ranking utenti per punteggio totale
+- **Top Players**: Migliori giocatori per prestazioni
+- **Classifiche per Evento**: Ranking specifico per ogni giocata
+- **Statistiche Avanzate**: Medie, trend, performance
 
-### 🏆 **Classifica** (Accesso Libero)
-- Classifica in tempo reale basata sui punti totali
-- Visualizzazione squadre (massimo 8 giocatori)
+### 👥 Gestione Squadre
+- **Formazioni**: Creazione e gestione squadre (max 8 giocatori)
+- **Lineup**: Selezione formazione titolare per eventi
+- **Mercato Integrato**: Acquisto/vendita giocatori
+- **Budget Management**: Gestione crediti e valori di mercato
 
-### 👥 **Squadre** (Accesso Libero)
-- Visualizzazione di tutte le squadre
-- Riepilogo crediti e punti totali
+### 🛒 Sistema Mercato
+- **1000 crediti** iniziali per ogni utente
+- **Valori Dinamici**: Prezzi basati su prestazioni
+- **Acquisto/Vendita**: Sistema completo transazioni
+- **Vendita al 80%**: Meccanica di rivendita realistica
 
-### 🛒 **Mercato** (Password Protetto)
-- **Password**: `admin123`
-- 1000 crediti iniziali per ogni associato
-- 48 giocatori disponibili (tutti gli associati del club)
-- Valori randomizzati tra 50-250 crediti
-- Sistema acquisto/vendita (vendita al 80%)
+### 📅 Gestione Eventi
+- **Creazione Eventi**: Eventi programmati con date
+- **Countdown**: Timer automatico per eventi futuri
+- **Stato Eventi**: Attivi, chiusi, archiviati
+- **Assegnazione Punteggi**: Sistema completo scoring per evento
 
-### ⚙️ **Admin Panel** (Password Protetto)
-- **Password**: `admin123`
-- Sistema punteggi completo con tutti gli eventi
-- Storico eventi con data e descrizione
-- Reset mercato/punteggi/completo
+### ⚙️ Admin Panel Completo
+- **Gestione Eventi**: Creazione, modifica, chiusura eventi
+- **Assegnazione Punteggi**: Interface per tutti i tipi di punteggio
+- **Reset Sistema**: Reset mercato/punteggi/completo
+- **Storico Completo**: Visualizzazione tutti i dati storici
+- **Statistiche Advanced**: Report e analytics
 
-## 🎮 Sistema Punteggi
+## 🎮 Sistema Punteggi Dettagliato
 
 ### **Malus** ❌
-| Evento | Punti | Descrizione |
-|--------|-------|-------------|
-| Non mette presenza | -2 | Assenza non comunicata |
-| Bidona domenica | -5 | Assenza il giorno della partita |
-| Ritardo/uscita anticipata | -1 | Ogni 15 minuti |
-| Consiglio disciplinare | -6 | Sanzione disciplinare |
-| Assente con avviso | -2 | Assenza comunicata |
-| Non offre dopo compleanno | -2 | Mancata offerta post-evento |
-| Sporca il bosco | -5 | Comportamento antiecologico |
-| Perde equipaggiamento | -3 | Perdita materiali |
-| Radio assente/scarica | -3 | Problemi comunicazione |
-| Batteria scarica | -2 | Batteria insufficiente |
-| Patch alta visibilità | -1 | Equipaggiamento non conforme |
+| Evento | Punti | Codice | Descrizione |
+|--------|-------|--------|-------------|
+| Non mette presenza | -2 | NO_PRESENCE | Assenza non comunicata |
+| Bidona domenica | -5 | SUNDAY_BAIL | Assenza il giorno della partita |
+| Ritardo/uscita anticipata | -1 | LATE_EARLY | Per ogni 15 minuti |
+| Consiglio disciplinare | -6 | DISCIPLINARY | Sanzione disciplinare |
+| Assente con avviso | -2 | NOTIFIED_ABSENCE | Assenza comunicata |
+| Non offre dopo compleanno | -2 | NO_BIRTHDAY_TREAT | Mancata offerta |
+| Sporca il bosco | -5 | LITTERING | Comportamento antiecologico |
+| Perde equipaggiamento | -3 | LOST_EQUIPMENT | Perdita materiali |
+| Radio assente/scarica | -3 | RADIO_ISSUE | Problemi comunicazione |
+| Batteria scarica | -2 | LOW_BATTERY | Batteria insufficiente |
+| Patch alta visibilità | -1 | HIGH_VIS_PATCH | Equipaggiamento non conforme |
 
 ### **Bonus** ✅
-| Evento | Punti | Descrizione |
-|--------|-------|-------------|
-| Presente | +4 | Partecipazione alla giocata |
-| Anticipo organizzazione | +2 | Aiuto preparazione |
-| Silent kill | +3 | Eliminazione silenziosa |
-| Kill a 1 colpo | +1 | Eliminazione precisa |
-| Cornetti sul campo | +5 | Offerta base |
-| + Bonus salmone | +1 | Aggiunta salmone |
-| + Senza lattosio | +1 | Opzione senza lattosio |
-| Presenze cumulative | +5 | Dopo 3 consecutive |
-| Trova equipaggiamento | +2 | Recupero materiali |
-| Crea scenografia | +5 | Contributo ambientazione |
-| Obiettivo speciale | +3 | Creazione sfida |
-| Aiuto manovalanza | +3 | Supporto organizzativo |
-| Convocazione evento | +2 | Partecipazione speciale |
+| Evento | Punti | Codice | Descrizione |
+|--------|-------|--------|-------------|
+| Presente | +4 | PRESENT | Partecipazione base |
+| Anticipo organizzazione | +2 | EARLY_HELP | Aiuto preparazione |
+| Silent kill | +3 | SILENT_KILL | Eliminazione silenziosa |
+| Kill a 1 colpo | +1 | ONE_SHOT_KILL | Eliminazione precisa |
+| Cornetti base | +5 | BASIC_TREATS | Offerta cornetti |
+| + Bonus salmone | +1 | SALMON_BONUS | Aggiunta salmone |
+| + Senza lattosio | +1 | LACTOSE_FREE | Opzione senza lattosio |
+| Presenze consecutive | +5 | CONSECUTIVE | Dopo 3 consecutive |
+| Trova equipaggiamento | +2 | FOUND_EQUIPMENT | Recupero materiali |
+| Crea scenografia | +5 | SCENOGRAPHY | Contributo ambientazione |
+| Obiettivo speciale | +3 | SPECIAL_OBJECTIVE | Creazione sfida |
+| Aiuto manovalanza | +3 | MANUAL_HELP | Supporto organizzativo |
+| Convocazione evento | +2 | EVENT_CALL | Partecipazione speciale |
 
-## 🔧 **Configurazione Sviluppo**
+## 📁 Struttura Database
 
-### **Scripts NPM Disponibili**
+### **Entità Principali**
+
+#### **Users** - Utenti/Associati
+```sql
+CREATE TABLE users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT UNIQUE NOT NULL,
+    credits INTEGER DEFAULT 1000,
+    total_points INTEGER DEFAULT 0,
+    team_password TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+#### **Players** - Giocatori del Club
+```sql
+CREATE TABLE players (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    base_value INTEGER DEFAULT 100,
+    current_points INTEGER DEFAULT 0,
+    yearly_points INTEGER DEFAULT 0,
+    position TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+#### **Game Events** - Eventi/Giocate
+```sql
+CREATE TABLE game_events (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    date DATETIME NOT NULL,
+    description TEXT,
+    active BOOLEAN DEFAULT 1,
+    closed BOOLEAN DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+#### **Event Scores** - Punteggi per Evento
+```sql
+CREATE TABLE event_scores (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    player_id INTEGER NOT NULL,
+    game_event_id INTEGER NOT NULL,
+    points INTEGER NOT NULL,
+    description TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (player_id) REFERENCES players(id),
+    FOREIGN KEY (game_event_id) REFERENCES game_events(id),
+    UNIQUE(player_id, game_event_id)
+);
+```
+
+#### **User Players** - Possesso Giocatori
+```sql
+CREATE TABLE user_players (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    player_id INTEGER NOT NULL,
+    selected_for_lineup BOOLEAN DEFAULT 0,
+    is_in_formation BOOLEAN DEFAULT 0,
+    purchase_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (player_id) REFERENCES players(id),
+    UNIQUE(user_id, player_id)
+);
+```
+
+#### **User Event Scores** - Punteggi Utente per Evento
+```sql
+CREATE TABLE user_event_scores (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    game_event_id INTEGER NOT NULL,
+    total_points INTEGER DEFAULT 0,
+    formation_snapshot TEXT,
+    calculated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (game_event_id) REFERENCES game_events(id),
+    UNIQUE(user_id, game_event_id)
+);
+```
+
+### Creazione Database da Zero
+
+Se il database viene eliminato, seguire questi passaggi:
+
+```bash
+# 1. Rimuovi database esistente (se presente)
+rm -f data/fanta-softair.db
+
+# 2. Avvia l'app - TypeORM creerà le tabelle automaticamente
+npm run start:dev
+
+# 3. Il database viene creato con la struttura completa
+# Le entità TypeORM generano automaticamente le tabelle
+```
+
+### Backup e Restore Database
+
+```bash
+# Backup completo
+cp data/fanta-softair.db "data/backup-$(date +%Y%m%d_%H%M%S).db"
+
+# Restore da backup
+cp data/backup-20241201_143022.db data/fanta-softair.db
+
+# Export SQL (opzionale)
+sqlite3 data/fanta-softair.db .dump > backup.sql
+
+# Import SQL
+sqlite3 data/fanta-softair.db < backup.sql
+```
+
+## 🌐 API Endpoints
+
+### **Autenticazione**
+- `POST /auth/login` - Login amministratore
+
+### **Utenti**
+- `GET /users` - Lista tutti gli utenti
+- `GET /users/:id` - Dettaglio utente specifico
+- `GET /users/:id/players` - Giocatori posseduti da utente
+
+### **Giocatori**
+- `GET /players` - Lista tutti i giocatori
+- `GET /players/available` - Giocatori disponibili per acquisto
+- `GET /players/top` - Top giocatori per punteggio
+
+### **Mercato**
+- `POST /market/buy` - Acquista giocatore
+- `POST /market/sell` - Vendi giocatore
+- `GET /market/transactions` - Storico transazioni
+
+### **Eventi**
+- `GET /game-events` - Lista eventi
+- `POST /game-events` - Crea nuovo evento (admin)
+- `PUT /game-events/:id` - Modifica evento (admin)
+- `DELETE /game-events/:id` - Elimina evento (admin)
+
+### **Punteggi Eventi**
+- `GET /event-scoring/event/:id` - Punteggi per evento
+- `POST /event-scoring/assign` - Assegna punteggi (admin)
+- `GET /event-scoring/rankings/:eventId` - Classifica evento
+
+### **Amministrazione**
+- `POST /admin/reset` - Reset sistema completo
+- `GET /admin/stats` - Statistiche generali
+- `POST /admin/calculate-scores` - Ricalcola punteggi
+
+### **Team/Formazioni**
+- `GET /team/:userId` - Formazione utente
+- `POST /team/:userId/lineup` - Aggiorna formazione titolare
+
+## 🛠️ Struttura Progetto
+
+```
+FantaSoftair-New2/
+├── src/                           # Codice sorgente NestJS
+│   ├── admin/                    # Modulo amministrazione
+│   ├── auth/                     # Autenticazione JWT
+│   ├── database/                 # Configurazione DB e entità
+│   │   └── entities/            # Entità TypeORM
+│   │       ├── user.entity.ts
+│   │       ├── player.entity.ts
+│   │       ├── game-event.entity.ts
+│   │       ├── event-score.entity.ts
+│   │       ├── user-event-score.entity.ts
+│   │       └── user-player.entity.ts
+│   ├── event-scoring/           # Sistema punteggi eventi
+│   ├── game-events/             # Gestione eventi gioco
+│   ├── market/                  # Sistema mercato
+│   ├── players/                 # Gestione giocatori
+│   ├── team/                    # Gestione formazioni
+│   ├── users/                   # Gestione utenti
+│   ├── app.module.ts            # Modulo principale
+│   └── main.ts                  # Entry point
+├── public/                       # Frontend statico
+│   ├── index.html               # App principale
+│   ├── admin.html               # Panel admin
+│   ├── classifica.html          # Classifiche
+│   ├── script.js                # Logica frontend
+│   └── style.css                # Stili responsive
+├── data/                         # Database SQLite
+│   └── fanta-softair.db         # File database principale
+├── dist/                         # Build output TypeScript
+├── package.json                  # Dipendenze e scripts
+└── README.md                     # Questa documentazione
+```
+
+## 🔧 Scripts NPM
+
 ```json
 {
-  "build": "tsc",              // Compila TypeScript
-  "start": "node dist/main",   // Avvio produzione NestJS
-  "start:dev": "ts-node src/main.ts", // Sviluppo NestJS
-  "start:old": "node server/server.js", // Server Express legacy
-  "dev": "nodemon server/server.js",    // Sviluppo Express
-  "test": "echo \"Error: no test specified\" && exit 1"
+  "build": "nest build",
+  "start": "nest start",
+  "start:dev": "nest start --watch",
+  "start:debug": "nest start --debug --watch", 
+  "start:prod": "node dist/main",
+  "test": "jest",
+  "test:watch": "jest --watch",
+  "test:cov": "jest --coverage"
 }
 ```
 
-### **WebStorm Configuration**
-1. **TypeScript**: Configurazione automatica con `tsconfig.json`
-2. **Debugging NestJS**: 
-   - Avvia con `npm run start:dev`
-   - Attach debugger Node.js su porta 3000
-3. **Live Reload**: Utilizzare `npm run start:dev` per auto-restart
+## 🚀 Deploy in Produzione
 
-## 📁 **Struttura Database**
+### Server VPS/Cloud
 
-### **Entità TypeORM**
-
-#### **User Entity** (`src/database/entities/user.entity.ts`)
-```typescript
-export class User {
-  id: number;
-  name: string;
-  credits: number;
-  totalScore: number;
-  createdAt: Date;
-  updatedAt: Date;
-}
-```
-
-#### **Player Entity** (`src/database/entities/player.entity.ts`)
-```typescript
-export class Player {
-  id: number;
-  name: string;
-  value: number;
-  ownerId: number;
-  createdAt: Date;
-  updatedAt: Date;
-}
-```
-
-#### **Event Entity** (`src/database/entities/event.entity.ts`)
-```typescript
-export class Event {
-  id: number;
-  playerId: number;
-  eventType: string;
-  points: number;
-  description: string;
-  date: Date;
-}
-```
-
-### **Backup Database**
-Il database SQLite si trova in `data/fanta-softair.db`
 ```bash
-# Backup
-cp data/fanta-softair.db data/backup-$(date +%Y%m%d).db
-
-# Restore
-cp data/backup-20241201.db data/fanta-softair.db
-```
-
-## 🌐 **Deploy Produzione**
-
-### **Server VPS/Cloud**
-```bash
-# Installa Node.js e PM2
+# Installa Node.js 18+ e PM2
+curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+sudo apt-get install -y nodejs
 npm install -g pm2
 
-# Deploy
-git clone [repo-url]
-cd fanta-softair-ateam
+# Deploy applicazione
+git clone https://github.com/xMikee/FantaSoftair.git
+cd FantaSoftair
 npm install
-pm2 start server/server.js --name "fanta-softair"
+npm run build
+
+# Avvia con PM2
+pm2 start dist/main.js --name "fanta-softair"
+pm2 startup
+pm2 save
 ```
 
-### **Docker** (opzionale)
+### Docker Setup
+
 ```dockerfile
 FROM node:18-alpine
 
-# Installa dependencies per SQLite
+# Installa dipendenze SQLite
 RUN apk add --no-cache python3 make g++
 
 WORKDIR /app
 
-# Copia package files
+# Copy e installa dipendenze
 COPY package*.json ./
-COPY tsconfig.json ./
+RUN npm ci --only=production
 
-# Installa dependencies
-RUN npm install
+# Copy codice sorgente
+COPY . .
 
-# Copia sorgenti
-COPY src/ ./src/
-COPY public/ ./public/
-COPY server/ ./server/
-
-# Build TypeScript
+# Build applicazione
 RUN npm run build
 
-# Crea directory data
+# Crea cartella database
 RUN mkdir -p data
 
 EXPOSE 3000
 
-# Avvia NestJS
-CMD ["npm", "start"]
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:3000/api/users || exit 1
+
+CMD ["npm", "run", "start:prod"]
 ```
 
-## 🛠️ **Sviluppo**
+## 🔐 Sicurezza
 
-### **Struttura del Progetto**
-```
-FantaSoftair/
-├── src/                     # Codice sorgente NestJS
-│   ├── admin/              # Modulo amministrazione
-│   ├── auth/               # Modulo autenticazione
-│   ├── database/           # Configurazione database
-│   │   └── entities/       # Entità TypeORM
-│   ├── events/             # Modulo eventi
-│   ├── market/             # Modulo mercato
-│   ├── players/            # Modulo giocatori
-│   ├── users/              # Modulo utenti
-│   ├── app.module.ts       # Modulo principale
-│   └── main.ts            # Entry point NestJS
-├── server/                 # Server Express.js legacy
-├── public/                 # Frontend statico
-│   ├── img/               # Immagini e asset
-│   ├── index.html         # Interfaccia principale
-│   ├── script.js          # Logica frontend
-│   └── style.css          # Stili CSS
-├── data/                   # Database SQLite
-└── dist/                   # Build output
-```
-
-### **API Endpoints NestJS**
-Documentazione completa disponibile su: `http://localhost:3000/api-docs`
-
-#### **Autenticazione**
-- `POST /auth/login` - Login amministratore
-
-#### **Utenti**
-- `GET /users` - Lista associati
-- `GET /users/:id` - Dettaglio utente
-
-#### **Giocatori**
-- `GET /players` - Lista giocatori
-- `GET /players/available` - Giocatori disponibili
-
-#### **Mercato**
-- `POST /market/buy` - Acquista giocatore
-- `POST /market/sell` - Vendi giocatore
-
-#### **Eventi**
-- `GET /events` - Storico eventi
-- `GET /events/user/:userId` - Eventi per utente
-
-#### **Amministrazione**
-- `POST /admin/score` - Aggiorna punteggi
-- `POST /admin/reset` - Reset sistema
-
-### **Aggiungere nuove funzionalità**
-
-#### **Backend NestJS**
-1. Crea nuovi moduli con `nest generate module nome-modulo`
-2. Genera controller: `nest generate controller nome-modulo`
-3. Genera service: `nest generate service nome-modulo`
-4. Definisci entità in `src/database/entities/`
-5. Aggiorna `app.module.ts` per importare nuovi moduli
-
-#### **Frontend**
-1. Aggiorna `public/script.js` per nuove funzionalità
-2. Modifica `public/style.css` per nuovi stili
-3. Estendi `public/index.html` per nuovi elementi UI
-
-#### **Database**
-- Le migrazioni sono automatiche con TypeORM
-- Modifica le entità per cambiare la struttura DB
-
-## 📱 **Mobile**
-L'app è completamente responsive e funziona su tutti i dispositivi.
-
-## 🔐 **Sicurezza e Password**
-
-### **Password Predefinita**
-- **Password Unica**: `admin123` (per mercato e amministrazione)
-
-### **Cambiare la Password**
-Modifica il file `server/server.js`:
-```javascript
-const ADMIN_PASSWORD = "tua_nuova_password";
-```
-
-### **Livelli di Accesso**
-1. **Pubblico** (senza password):
-    - ✅ Visualizzazione classifica
-    - ✅ Visualizzazione squadre formate
-
-2. **Amministratori** (password admin):
-    - ✅ Accesso al mercato
-    - ✅ Acquisto/vendita giocatori  
-    - ✅ Gestione delle squadre
-    - ✅ Aggiornamento punteggi
-    - ✅ Gestione eventi
-    - ✅ Reset sistema
-    - ✅ Visualizzazione storico completo
-
-### **Sicurezza Aggiuntiva per Produzione**
-Per un ambiente di produzione, considera:
-```bash
-npm install express-session bcrypt
-```
-
-E implementa:
-- Session management con cookie sicuri
-- Hash delle password con bcrypt
-- HTTPS obbligatorio
-- Rate limiting per login tentativi
-
-## 📞 **Supporto**
-Per problemi o miglioramenti, contatta l'admin del club!
-
----
-*Buona fortuna con il Fanta Softair! 🎯*
-
-## 🎯 **Quick Start Commands**
+### Configurazione Produzione
 
 ```bash
-# Setup completo NestJS
-git clone https://github.com/xMikee/FantaSoftair.git && cd FantaSoftair && npm install && npm run start:dev
-
-# Setup Express.js legacy
-git clone https://github.com/xMikee/FantaSoftair.git && cd FantaSoftair && npm install && npm run start:old
+# Variabili ambiente
+export NODE_ENV=production
+export JWT_SECRET=your-super-secret-jwt-key
+export ADMIN_PASSWORD=your-secure-admin-password
 ```
 
-## 🔄 **Aggiornamenti Futuri**
+### Rate Limiting (Consigliato)
 
-### **Funzionalità Pianificate**
-- [ ] **Autenticazione**: Login per ogni associato
-- [ ] **Notifiche Push**: Avvisi per nuovi eventi
-- [ ] **Statistiche Avanzate**: Grafici e trend
-- [ ] **Mobile App**: PWA o app nativa
-- [ ] **Integrazione WhatsApp**: Bot per aggiornamenti
-- [ ] **Foto Eventi**: Upload immagini delle giocate
-- [ ] **Calendario**: Pianificazione eventi futuri
-- [ ] **Premi**: Sistema ricompense automatico
-
-### **Miglioramenti Tecnici**
-- [x] **NestJS Framework**: Migrazione completata
-- [x] **TypeORM**: ORM moderno per database
-- [x] **Swagger Documentation**: API docs automatiche
-- [ ] **Redis Cache**: Per performance migliori
-- [ ] **WebSocket**: Aggiornamenti in tempo reale
-- [ ] **API Rate Limiting**: Protezione da abusi
-- [ ] **Backup Automatico**: Salvataggi programmati
-- [ ] **Test Suite**: Unit e integration tests
-- [ ] **CI/CD Pipeline**: Deploy automatizzato
-
-## 🐛 **Troubleshooting**
-
-### **Problemi Comuni**
-
-#### **Porta già in uso**
 ```bash
-# Trova processo sulla porta 3000
+npm install @nestjs/throttler
+```
+
+## 📱 PWA Support (Futuro)
+
+Il sistema è predisposto per diventare una Progressive Web App:
+
+- Service Worker ready
+- Responsive design completo
+- Offline capabilities (parziali)
+- App-like experience mobile
+
+## 🐛 Troubleshooting
+
+### Database non si crea
+```bash
+# Verifica permessi
+chmod 755 data/
+# Ricrea database
+rm -f data/fanta-softair.db
+npm run start:dev
+```
+
+### Porta 3000 occupata
+```bash
+# Trova processo
 lsof -i :3000
-# Termina il processo
+# Termina processo
 kill -9 [PID]
 ```
 
-#### **Database non si crea**
+### Reset completo sistema
 ```bash
-# Controlla permessi cartella
-chmod 755 data/
-# Ricrea database
-rm data/fanta-softair.db
-npm start
+# Elimina database e rebuild
+rm -f data/fanta-softair.db
+rm -rf dist/
+npm run build
+npm run start:dev
 ```
 
-#### **Errore CORS in produzione**
-Modifica `server/server.js`:
-```javascript
-app.use(cors({
-    origin: ['http://localhost:3000', 'https://yourdomain.com'],
-    credentials: true
-}));
-```
+## 📊 Funzionalità Future Pianificate
 
-#### **Giocatori non si caricano**
-1. Verifica connessione database
-2. Controlla logs: `npm run dev`
-3. Reset database: API `/api/reset` con type "all"
+- [ ] **Notifiche Push**: Per eventi e aggiornamenti
+- [ ] **Chat Integrata**: Comunicazione tra utenti
+- [ ] **Statistiche Avanzate**: Grafici e analytics
+- [ ] **Mobile App**: PWA o app nativa
+- [ ] **Integrazione Social**: Condivisione risultati
+- [ ] **Sistema Premi**: Riconoscimenti automatici
+- [ ] **Backup Cloud**: Sincronizzazione automatica
 
-### **Log Debugging**
-```bash
-# Logs in tempo reale
-tail -f logs/app.log
+## 📞 Supporto e Contatti
 
-# Logs database
-sqlite3 data/fanta-softair.db ".schema"
-sqlite3 data/fanta-softair.db "SELECT * FROM users LIMIT 5;"
-```
-
-## 📊 **Monitoraggio**
-
-### **Metriche Importanti**
-- Numero utenti attivi
-- Transazioni mercato giornaliere
-- Eventi registrati per giocata
-- Performance tempo risposta API
-
-### **Health Check**
-```bash
-curl http://localhost:3000/api/users
-```
-
-## 🎨 **Personalizzazione**
-
-### **Cambiare Colori**
-Modifica `public/style.css`:
-```css
-:root {
-    --primary-color: #667eea;
-    --secondary-color: #764ba2;
-    --success-color: #48bb78;
-    --danger-color: #f56565;
-}
-```
-
-
-### **Personalizzare Punteggi**
-Modifica array eventi in `server/server.js` e `public/index.html`.
-
-## 🚀 **Performance Tips**
-
-### **Ottimizzazioni Database**
-```sql
--- Indici per query frequenti
-CREATE INDEX idx_players_owner ON players(owner_id);
-CREATE INDEX idx_events_player ON events(player_id);
-CREATE INDEX idx_events_date ON events(date);
-```
-
-### **Cache Strategie**
-- Cache classifica per 1 minuto
-- Cache mercato per 30 secondi
-- Cache eventi per 5 minuti
-
-### **Compressione Assets**
-```bash
-npm install compression
-```
-
-Aggiungi in `server.js`:
-```javascript
-const compression = require('compression');
-app.use(compression());
-```
-
-## 🔐 **Sicurezza Produzione**
-
-### **Variabili Ambiente**
-Crea `.env`:
-```env
-NODE_ENV=production
-PORT=3000
-DB_PATH=./data/fanta-softair.db
-SECRET_KEY=your-secret-key-here
-ADMIN_PASSWORD=admin-password
-```
-
-### **HTTPS Setup**
-```javascript
-const https = require('https');
-const fs = require('fs');
-
-const options = {
-    key: fs.readFileSync('private-key.pem'),
-    cert: fs.readFileSync('certificate.pem')
-};
-
-https.createServer(options, app).listen(443);
-```
-
-### **Rate Limiting**
-```bash
-npm install express-rate-limit
-```
-
-```javascript
-const rateLimit = require('express-rate-limit');
-
-const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minuti
-    max: 100 // max 100 richieste per IP
-});
-
-app.use('/api/', limiter);
-```
-
-## 📱 **PWA Setup**
-
-### **Service Worker**
-Crea `public/sw.js`:
-```javascript
-const CACHE_NAME = 'fanta-softair-v1';
-const urlsToCache = [
-    '/',
-    '/style.css',
-    '/script.js'
-];
-
-self.addEventListener('install', (event) => {
-    event.waitUntil(
-        caches.open(CACHE_NAME)
-            .then((cache) => cache.addAll(urlsToCache))
-    );
-});
-```
-
-### **Manifest**
-Crea `public/manifest.json`:
-```json
-{
-  "name": "Fanta Softair",
-  "short_name": "FantaSoftair",
-  "start_url": "/",
-  "display": "standalone",
-  "background_color": "#667eea",
-  "theme_color": "#667eea",
-  "icons": [
-    {
-      "src": "icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    }
-  ]
-}
-```
-
-## 📧 **Integrazioni**
-
-### **Email Notifiche**
-```bash
-npm install nodemailer
-```
-
-### **WhatsApp Bot**
-```bash
-npm install whatsapp-web.js
-```
-
-### **Telegram Bot**
-```bash
-npm install node-telegram-bot-api
-```
-
-## 🏆 **Best Practices**
-
-### **Codice**
-- Usa ESLint per code style
-- Implementa testing con Jest
-- Documenta API con Swagger
-- Usa TypeScript per type safety
-
-### **Database**
-- Backup regolari automatici
-- Validazione input sanitizzata
-- Transazioni per operazioni critiche
-- Indici su colonne frequent queries
-
-### **UI/UX**
-- Loading states per tutte le azioni
-- Error handling user-friendly
-- Mobile-first design
-- Accessibility compliance (WCAG)
+Per problemi tecnici, miglioramenti o domande:
+- Controlla i logs: `npm run start:dev`
+- Verifica database: `sqlite3 data/fanta-softair.db ".tables"`
+- API Documentation: http://localhost:3000/api-docs
 
 ---
 
-## 🎉 **Conclusione**
+## 🎯 Quick Start
 
-Hai ora un sistema completo per il Fanta Softair del club! Il sistema è:
+```bash
+# Setup completo in una linea
+git clone https://github.com/xMikee/FantaSoftair.git && cd FantaSoftair && npm install && npm run start:dev
+```
 
-✅ **Completo**: Mercato, punteggi, classifiche, admin panel
-✅ **Scalabile**: Architettura modulare e estendibile  
-✅ **Mobile-Ready**: Design responsive per tutti i dispositivi
-✅ **Production-Ready**: Database persistente e API robuste
+**Porta**: http://localhost:3000
+**Admin**: Password di default (configurabile)
+**Database**: Creato automaticamente in `data/fanta-softair.db`
 
-### **Prossimi Passi Consigliati:**
+---
 
-1. **Test**: Prova tutte le funzionalità con dati reali
-2. **Backup**: Imposta backup automatici del database
-3. **Deploy**: Metti online su un server/cloud
-4. **Training**: Forma gli admin sull'uso del sistema
-5. **Feedback**: Raccogli feedback dagli associati
-6. **Iterate**: Migliora basandoti sull'uso reale
-
-**Buona fortuna con il Fanta Softair! 🎯🏆**
-
-*"Il gioco è più bello quando tutti partecipano!"*
+*🎯 Buona fortuna con il FantaSoftair! Che la fortuna sia sempre dalla parte del tuo fantasy team! 🏆*
