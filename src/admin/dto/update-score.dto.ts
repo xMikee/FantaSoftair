@@ -16,4 +16,9 @@ export class UpdateScoreDto {
   @IsOptional()
   @IsString()
   description?: string;
+
+  @ApiProperty({ description: 'Game Event ID (optional, if not provided will use generic event)', required: false })
+  @IsOptional()
+  @IsNumber()
+  gameEventId?: number;
 }

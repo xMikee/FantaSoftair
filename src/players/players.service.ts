@@ -2,12 +2,18 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, IsNull } from 'typeorm';
 import { Player } from '../database/entities/player.entity';
+import { UserPlayer } from '../database/entities/user-player.entity';
+import { User } from '../database/entities/user.entity';
 
 @Injectable()
 export class PlayersService {
   constructor(
     @InjectRepository(Player)
     private playersRepository: Repository<Player>,
+    @InjectRepository(UserPlayer)
+    private userPlayersRepository: Repository<UserPlayer>,
+    @InjectRepository(User)
+    private usersRepository: Repository<User>,
   ) {}
 
     private async updateOwnerTotalPoints(ownerId: number): Promise<void> {
@@ -15,46 +21,52 @@ export class PlayersService {
 
         console.log(`Updating total points for user ${ownerId}...`);
 
-        // Calcolo dei punti totali del giocatore
-        const result = await this.playersRepository
-            .createQueryBuilder('player')
+        // Calcolo dei punti totali del giocatore usando la nuova struttura
+        const result = await this.userPlayersRepository
+            .createQueryBuilder('userPlayer')
+            .leftJoin('userPlayer.player', 'player')
             .select('COALESCE(SUM(player.currentPoints), 0)', 'totalPoints')
-            .where('player.ownerId = :ownerId', { ownerId })
-            .andWhere('player.selectedForLineup = :selected', { selected: true })
+            .where('userPlayer.userId = :ownerId', { ownerId })
+            .andWhere('userPlayer.selectedForLineup = :selected', { selected: true })
             .getRawOne<{ totalPoints: string }>();
 
         const totalPoints = Number(result?.totalPoints ?? 0);
         console.log(`Calculated total points: ${totalPoints} for user ${ownerId}`);
 
         // Aggiornamento del campo total_points nella tabella users
-        const updateResult = await this.playersRepository.manager
-            .createQueryBuilder()
-            .update('users')
-            .set({ totalPoints })
-            .where('id = :ownerId', { ownerId })
-            .execute();
+        await this.usersRepository.update(ownerId, { totalPoints });
 
-        console.log(`Update result for user ${ownerId}:`, updateResult);
+        console.log(`Updated total points: ${totalPoints} for user ${ownerId}`);
     }
 
 
     async findAll(available?: boolean, userId?: number): Promise<Player[]> {
-    const queryBuilder = this.playersRepository.createQueryBuilder('player');
-    
     if (available) {
-      queryBuilder.where('player.ownerId IS NULL');
+      // In un sistema fantasy, tutti i giocatori sono sempre disponibili per l'acquisto
+      // Ogni squadra può acquistare qualsiasi giocatore indipendentemente dal fatto che sia già posseduto da altri
+      return this.playersRepository.find({ order: { baseValue: 'DESC' } });
     } else if (userId) {
-      queryBuilder.where('player.ownerId = :userId', { userId });
+      // Trova tutti i giocatori posseduti da un utente specifico
+      return this.userPlayersRepository
+        .createQueryBuilder('userPlayer')
+        .leftJoinAndSelect('userPlayer.player', 'player')
+        .where('userPlayer.userId = :userId', { userId })
+        .orderBy('player.baseValue', 'DESC')
+        .getMany()
+        .then(userPlayers => userPlayers.map(up => ({
+          ...up.player,
+          selectedForLineup: up.selectedForLineup || false,
+          isInFormation: up.isInFormation || false
+        })));
     }
     
-    queryBuilder.orderBy('player.baseValue', 'DESC');
-    
-    return queryBuilder.getMany();
+    return this.playersRepository.find({ order: { baseValue: 'DESC' } });
   }
 
   async getTemplatePlayersForMarket(): Promise<Player[]> {
+    // Tutti i giocatori sono ora template/master data - nessuno ha un owner diretto
     return this.playersRepository.find({
-      where: { ownerId: null }
+      order: { baseValue: 'DESC' }
     });
   }
 
@@ -62,9 +74,7 @@ export class PlayersService {
     return this.playersRepository.findOne({ where: { id } });
   }
 
-  async updateOwner(id: number, ownerId: number | null): Promise<void> {
-    await this.playersRepository.update(id, { ownerId });
-  }
+  // Metodo deprecato - ora usiamo la tabella UserPlayer per gestire l'ownership
 
   async updatePoints(id: number, points: number): Promise<void> {
     const player = await this.playersRepository.findOne({ where: { id } });
@@ -72,36 +82,37 @@ export class PlayersService {
       throw new Error('Player not found');
     }
 
-    // If it's a template player (no owner), update all players with the same name
-    if (!player.ownerId) {
-      await this.playersRepository.increment({ name: player.name }, 'currentPoints', points);
-      
-      // Update total points for all owners of players with this name  
-      const ownedPlayers = await this.playersRepository
-        .createQueryBuilder('player')
-        .where('player.name = :name', { name: player.name })
-        .andWhere('player.ownerId IS NOT NULL')
-        .getMany();
-      
-      const ownerIds = [...new Set(ownedPlayers.map(p => p.ownerId))];
-      for (const ownerId of ownerIds) {
-        if (ownerId) {
-          await this.updateOwnerTotalPoints(ownerId);
-        }
-      }
-    } else {
-      // If it's an owned player, update just this player
-      await this.playersRepository.increment({ id }, 'currentPoints', points);
-      await this.updateOwnerTotalPoints(player.ownerId);
+    // Ora tutti i giocatori sono template/master - aggiorna il giocatore master
+    await this.playersRepository.increment({ id }, 'currentPoints', points);
+    
+    // Aggiorna i punti totali di tutti gli utenti che possiedono questo giocatore
+    const ownerships = await this.userPlayersRepository.find({
+      where: { playerId: id }
+    });
+    
+    const ownerIds = [...new Set(ownerships.map(up => up.userId))];
+    for (const ownerId of ownerIds) {
+      await this.updateOwnerTotalPoints(ownerId);
     }
   }
 
+  // NUOVO METODO PER SISTEMA FANTASY: funziona come updatePoints ma per il nuovo sistema
+  async updateCurrentPoints(id: number, points: number): Promise<void> {
+    console.log(`Adding ${points} points to player ${id} (Fantasy System)`);
+    
+    const player = await this.playersRepository.findOne({ where: { id } });
+    if (!player) {
+      throw new Error('Player not found');
+    }
+
+    // Aggiorna il giocatore master
+    await this.playersRepository.increment({ id }, 'currentPoints', points);
+    console.log(`Updated player ${player.name} by ${points} points`);
+  }
+
   async resetOwnership(): Promise<void> {
-    await this.playersRepository
-      .createQueryBuilder()
-      .update()
-      .set({ ownerId: null })
-      .execute();
+    // Rimuovi tutte le associazioni user-player
+    await this.userPlayersRepository.clear();
   }
 
   async resetPoints(): Promise<void> {
@@ -113,60 +124,71 @@ export class PlayersService {
   }
 
   async countByOwner(ownerId: number): Promise<number> {
-    return this.playersRepository.count({ where: { ownerId } });
+    return this.userPlayersRepository.count({ where: { userId: ownerId } });
   }
 
-  async updateLineupSelection(playerId: number, selected: boolean): Promise<void> {
-    const player = await this.playersRepository.findOne({ where: { id: playerId } });
-    if (!player) {
-      throw new Error('Player not found');
+  async updateLineupSelection(playerId: number, userId: number, selected: boolean): Promise<void> {
+    const userPlayer = await this.userPlayersRepository.findOne({
+      where: { playerId, userId }
+    });
+    
+    if (!userPlayer) {
+      throw new Error('Player not found in user team');
     }
 
-    await this.playersRepository.update(playerId, { selectedForLineup: selected });
-    
-    if (player.ownerId) {
-      await this.updateOwnerTotalPoints(player.ownerId);
-    }
+    await this.userPlayersRepository.update(userPlayer.id, { selectedForLineup: selected });
+    await this.updateOwnerTotalPoints(userId);
   }
 
   async getSelectedLineup(userId: number): Promise<Player[]> {
-    return this.playersRepository.find({
-      where: { ownerId: userId, selectedForLineup: true }
-    });
+    return this.userPlayersRepository
+      .createQueryBuilder('userPlayer')
+      .leftJoinAndSelect('userPlayer.player', 'player')
+      .where('userPlayer.userId = :userId', { userId })
+      .andWhere('userPlayer.selectedForLineup = :selected', { selected: true })
+      .getMany()
+      .then(userPlayers => userPlayers.map(up => up.player));
   }
 
   async countSelectedByOwner(ownerId: number): Promise<number> {
-    return this.playersRepository.count({ 
-      where: { ownerId, selectedForLineup: true } 
+    return this.userPlayersRepository.count({ 
+      where: { userId: ownerId, selectedForLineup: true } 
     });
   }
 
   async resetLineupSelections(userId?: number): Promise<void> {
-    const whereCondition = userId ? { ownerId: userId } : {};
-    await this.playersRepository.update(whereCondition, { selectedForLineup: false });
-    
     if (userId) {
+      await this.userPlayersRepository.update(
+        { userId }, 
+        { selectedForLineup: false }
+      );
       await this.updateOwnerTotalPoints(userId);
     } else {
-      const users = await this.playersRepository
-        .createQueryBuilder('player')
-        .select('DISTINCT player.ownerId', 'ownerId')
-        .where('player.ownerId IS NOT NULL')
+      await this.userPlayersRepository.update({}, { selectedForLineup: false });
+      
+      const users = await this.userPlayersRepository
+        .createQueryBuilder('userPlayer')
+        .select('DISTINCT userPlayer.userId', 'userId')
         .getRawMany();
       
       for (const user of users) {
-        await this.updateOwnerTotalPoints(user.ownerId);
+        await this.updateOwnerTotalPoints(user.userId);
       }
     }
   }
 
-    async getTopPlayer():Promise<Player> {
+    async getTopPlayer(): Promise<Player> {
         return this.playersRepository
             .createQueryBuilder('player')
-            .leftJoinAndSelect('player.owner','owner')
-            .orderBy('player.currentPoints','DESC')
+            .select([
+                'player.id',
+                'player.name', 
+                'player.currentPoints',
+                'player.baseValue',
+                'player.position'
+            ])
+            .orderBy('player.currentPoints', 'DESC')
             .limit(1)
-            .getOne()
-
+            .getOne();
     }
 }

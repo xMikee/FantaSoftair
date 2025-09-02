@@ -4,9 +4,11 @@ import { Repository, In } from 'typeorm';
 import { User } from '../database/entities/user.entity';
 import { Player } from '../database/entities/player.entity';
 import { Event } from '../database/entities/event.entity';
+import { UserPlayer } from '../database/entities/user-player.entity';
 import { PlayersService } from '../players/players.service';
 import { EventsService } from '../events/events.service';
 import { GameEventsService } from '../game-events/game-events.service';
+import { EventScoringService } from '../event-scoring/event-scoring.service';
 import * as crypto from 'crypto';
 
 @Injectable()
@@ -18,19 +20,49 @@ export class AdminService {
     private playersRepository: Repository<Player>,
     @InjectRepository(Event)
     private eventsRepository: Repository<Event>,
+    @InjectRepository(UserPlayer)
+    private userPlayersRepository: Repository<UserPlayer>,
     private playersService: PlayersService,
     private eventsService: EventsService,
     public gameEventsService: GameEventsService,
+    private eventScoringService: EventScoringService,
   ) {}
 
-  async updateScore(playerId: number, points: number, description?: string) {
-    await this.playersService.updatePoints(playerId, points);
-    await this.eventsService.create(playerId, points, description);
+  async updateScore(playerId: number, points: number, description?: string, gameEventId?: number) {
+    try {
+      // Verifica che sia specificato un gameEventId (no più giocate generiche)
+      if (!gameEventId) {
+        throw new Error('È obbligatorio selezionare un evento per registrare il punteggio. Non sono più consentite giocate generiche.');
+      }
 
-    return {
-      success: true,
-      message: `Punteggio aggiornato: ${points > 0 ? '+' : ''}${points} punti!`
-    };
+      // Verifica che l'evento esista e non sia chiuso
+      const gameEvent = await this.gameEventsService.findOne(gameEventId);
+      if (gameEvent.closed) {
+        throw new Error('Non è possibile aggiornare punteggi per una giornata già chiusa.');
+      }
+
+      // NUOVO SISTEMA FANTASY: Aggiorna direttamente currentPoints
+      await this.playersService.updateCurrentPoints(playerId, points);
+      
+      // Mantieni storico degli eventi per riferimento con gameEventId
+      await this.eventsService.create(playerId, points, `[${gameEvent.name}] ${description || 'Punteggio evento'}`);
+
+      // Ricalcola i punti totali delle squadre
+      await this.recalculateAllTeamPoints();
+
+      return {
+        success: true,
+        message: `Punteggio aggiornato: ${points > 0 ? '+' : ''}${points} punti per ${gameEvent.name}`
+      };
+    } catch (error) {
+      console.error('Error in updateScore:', error);
+      throw error;
+    }
+  }
+
+  async updateEventScore(playerId: number, gameEventId: number, points: number, description?: string) {
+    // Questa funzione ora è solo un wrapper per updateScore
+    return this.updateScore(playerId, points, description, gameEventId);
   }
 
   async resetSystem(type: 'market' | 'scores' | 'all') {
@@ -48,12 +80,22 @@ export class AdminService {
         case 'scores':
           await this.playersService.resetPoints();
           await this.eventsService.deleteAll();
+          // Clear all event scores
+          const gameEvents = await this.gameEventsService.findAll();
+          for (const gameEvent of gameEvents) {
+            await this.eventScoringService.deleteEventScores(gameEvent.id);
+          }
           break;
           
         case 'all':
           await this.eventsService.deleteAll();
           await this.playersService.resetPoints();
           await this.playersService.resetOwnership();
+          // Clear all event scores
+          const allGameEvents = await this.gameEventsService.findAll();
+          for (const gameEvent of allGameEvents) {
+            await this.eventScoringService.deleteEventScores(gameEvent.id);
+          }
           await this.usersRepository
             .createQueryBuilder()
             .update()
@@ -103,10 +145,20 @@ export class AdminService {
       throw new Error('Team non trovato');
     }
 
-    await this.playersRepository.update(
-      { id: In(playerIds) },
-      { ownerId: user.id }
+    // Rimuovi eventuali assegnazioni esistenti per questi giocatori
+    await this.userPlayersRepository.delete({ playerId: In(playerIds) });
+
+    // Crea nuove associazioni
+    const userPlayers = playerIds.map(playerId => 
+      this.userPlayersRepository.create({
+        userId: user.id,
+        playerId,
+        selectedForLineup: false,
+        isInFormation: false
+      })
     );
+
+    await this.userPlayersRepository.save(userPlayers);
 
     return {
       success: true,
@@ -115,8 +167,65 @@ export class AdminService {
   }
 
   async getAllGameEventsForAdmin() {
-    // Per l'admin, restituisci solo eventi attivi (gli inattivi sono considerati "eliminati")
-    return this.gameEventsService.findAll();
+    // Per l'admin, restituisci solo eventi attivi e non chiusi per la selezione nelle dropdown di punteggio
+    return this.gameEventsService.findAll().then(events => 
+      events.filter(event => !event.closed)
+    );
+  }
+
+  async getAllGameEventsForDayClosure() {
+    // Per la chiusura giornata, mostra solo eventi attivi e non ancora chiusi
+    return this.gameEventsService.findAll().then(events => 
+      events.filter(event => !event.closed)
+    );
+  }
+
+  async getEventBasedRankings() {
+    return this.eventScoringService.getAllUsersRanking();
+  }
+
+  async getUserEventHistory(userId: number) {
+    return this.eventScoringService.getEventScoresForUser(userId);
+  }
+
+  async closeCurrentEvent(eventId?: number, eventName?: string) {
+    return this.gameEventsService.closeCurrentEvent(eventId, eventName);
+  }
+
+  async getBestPlayersRanking(limit: number = 10) {
+    return this.gameEventsService.getBestPlayersRanking(limit);
+  }
+
+  async getWorstPlayersRanking(limit: number = 10) {
+    return this.gameEventsService.getWorstPlayersRanking(limit);
+  }
+
+  // Ricalcola i punti totali di tutte le squadre basandosi sui currentPoints dei giocatori in formazione
+  private async recalculateAllTeamPoints(): Promise<void> {
+    console.log('Recalculating all team points (Fantasy System)...');
+    
+    const users = await this.usersRepository.find();
+    
+    for (const user of users) {
+      // Calcola i punti totali dei giocatori selezionati per la formazione usando la nuova struttura
+      const result = await this.userPlayersRepository
+        .createQueryBuilder('userPlayer')
+        .leftJoin('userPlayer.player', 'player')
+        .select('COALESCE(SUM(player.currentPoints), 0)', 'totalPoints')
+        .where('userPlayer.userId = :ownerId', { ownerId: user.id })
+        .andWhere('userPlayer.selectedForLineup = :selected', { selected: true })
+        .getRawOne<{ totalPoints: string }>();
+
+      const totalPoints = Number(result?.totalPoints ?? 0);
+      
+      // Aggiorna i punti totali dell'utente
+      user.totalPoints = totalPoints;
+      await this.usersRepository.save(user);
+      
+      console.log(`Updated team ${user.name}: ${totalPoints} points`);
+    }
+    
+    console.log('All team points recalculated successfully');
   }
 
   private generateRandomPassword(): string {

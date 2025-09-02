@@ -5,7 +5,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { AdminGuard } from '../auth/guards/admin.guard';
 
 @ApiTags('Market')
-@Controller('api')
+@Controller('api/market')
 export class MarketController {
   constructor(private readonly marketService: MarketService) {}
 
@@ -40,9 +40,30 @@ export class MarketController {
   }
 
   @Get('ranking')
-  @ApiOperation({ summary: 'Get user ranking' })
+  @ApiOperation({ summary: 'Get user ranking (legacy - based on real-time points)' })
   @ApiResponse({ status: 200, description: 'User ranking with points and team size' })
   async getRanking() {
     return this.marketService.getRanking();
+  }
+
+  @Get('event-ranking')
+  @ApiOperation({ summary: 'Get event-based user ranking (fantasy football style)' })
+  @ApiResponse({ status: 200, description: 'Event-based user ranking with locked scores per event' })
+  async getEventBasedRanking() {
+    return this.marketService.getEventBasedRanking();
+  }
+
+  @Get('best-players')
+  @ApiOperation({ summary: 'Get best players ranking based on yearly accumulated points' })
+  @ApiResponse({ status: 200, description: 'Best players ranking retrieved successfully' })
+  async getBestPlayers() {
+    return this.marketService.getBestPlayersRanking();
+  }
+
+  @Get('worst-players')  
+  @ApiOperation({ summary: 'Get worst players ranking based on yearly accumulated points' })
+  @ApiResponse({ status: 200, description: 'Worst players ranking retrieved successfully' })
+  async getWorstPlayers() {
+    return this.marketService.getWorstPlayersRanking();
   }
 }

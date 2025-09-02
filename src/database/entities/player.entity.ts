@@ -1,6 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, CreateDateColumn, JoinColumn } from 'typeorm';
-import { User } from './user.entity';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, CreateDateColumn } from 'typeorm';
 import { Event } from './event.entity';
+import { UserPlayer } from './user-player.entity';
 
 @Entity('players')
 export class Player {
@@ -16,14 +16,8 @@ export class Player {
   @Column({ default: 0, name: 'current_points' })
   currentPoints: number;
 
-  @Column({ nullable: true, name: 'owner_id' })
-  ownerId: number;
-
-  @Column({ default: false, name: 'selected_for_lineup' })
-  selectedForLineup: boolean;
-
-  @Column({ default: false, name: 'is_in_formation' })
-  isInFormation: boolean;
+  @Column({ default: 0, name: 'yearly_points' })
+  yearlyPoints: number;
 
   @Column({ nullable: true })
   position: string;
@@ -31,10 +25,9 @@ export class Player {
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
-  @ManyToOne(() => User, user => user.players, { nullable: true })
-  @JoinColumn({ name: 'owner_id' })
-  owner: User;
-
   @OneToMany(() => Event, event => event.player)
   events: Event[];
+
+  @OneToMany(() => UserPlayer, userPlayer => userPlayer.player)
+  userPlayers: UserPlayer[];
 }
