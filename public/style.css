@@ -856,6 +856,9 @@ body {
     }
 }
 @media (max-width: 480px) {
+    .grid{
+        display: block;
+    }
     .ranking-position{
         font-size: 16px;
         min-width: 20px;
