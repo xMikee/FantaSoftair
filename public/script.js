@@ -8,6 +8,8 @@ async function loadComponent(componentName, containerId) {
         // Set active nav button based on current page
         if (componentName === 'header') {
             setActiveNavButton();
+            // Initialize mobile menu after header is loaded
+            initializeMobileMenu();
         }
     } catch (error) {
         console.error(`Errore nel caricamento del componente ${componentName}:`, error);
@@ -1398,15 +1400,19 @@ async function showAllPasswords() {
 }
 
 // Hamburger Menu Functionality
-document.addEventListener('DOMContentLoaded', function() {
+function initializeMobileMenu() {
     const hamburger = document.getElementById('hamburger');
     const navMenu = document.getElementById('nav-menu');
     const navOverlay = document.getElementById('nav-overlay');
 
     if (hamburger && navMenu && navOverlay) {
+        // Remove any existing event listeners to avoid duplicates
+        hamburger.replaceWith(hamburger.cloneNode(true));
+        const newHamburger = document.getElementById('hamburger');
+        
         // Toggle mobile menu
         function toggleMobileMenu() {
-            hamburger.classList.toggle('active');
+            newHamburger.classList.toggle('active');
             navMenu.classList.toggle('active');
             navOverlay.classList.toggle('active');
             
@@ -1420,14 +1426,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Close mobile menu
         function closeMobileMenu() {
-            hamburger.classList.remove('active');
+            newHamburger.classList.remove('active');
             navMenu.classList.remove('active');
             navOverlay.classList.remove('active');
             document.body.style.overflow = '';
         }
 
         // Event listeners
-        hamburger.addEventListener('click', toggleMobileMenu);
+        newHamburger.addEventListener('click', toggleMobileMenu);
         navOverlay.addEventListener('click', closeMobileMenu);
 
         // Close menu when clicking on navigation links (mobile)
@@ -1450,7 +1456,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-});
+}
 
 // Game Events Management Functions
 let gameEvents = [];
