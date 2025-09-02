@@ -501,7 +501,7 @@ function updateEventHistory() {
     `;
 
     const tbody = table.querySelector('tbody');
-    events.slice(0, 20).forEach(event => {
+    events.slice(0, 12).forEach(event => {
         const row = document.createElement('tr');
         const formattedDate = new Date(event.date).toLocaleDateString('it-IT');
         const pointsClass = event.points >= 0 ? 'color: #48bb78;' : 'color: #f56565;';
