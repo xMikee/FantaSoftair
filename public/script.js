@@ -1859,7 +1859,7 @@ async function closeCurrentEventWithDay() {
             document.getElementById('day-closure-event-select').value = '';
             
             // Ricarica la classifica per mostrare i nuovi punteggi
-            await loadUnifiedRankings();
+            //await loadUnifiedRankings();
         } else {
             const error = await response.json().catch(() => ({ message: 'Errore sconosciuto' }));
             showAlert(error.message || 'Errore nella chiusura della giornata', 'error');
@@ -1931,7 +1931,7 @@ async function updatePlayerScore() {
             // Refresh data
             await loadInitialData();
             updateUI();
-            loadUnifiedRankings();
+            //loadUnifiedRankings();
         } else {
             const error = await response.json();
             showAlert(error.message || 'Errore nell\'aggiornamento del punteggio', 'error');
@@ -2024,7 +2024,7 @@ async function closeCurrentEvent() {
             showAlert(`🏁 ${result.message}\n\n📊 Statistiche:\n- Giocatori aggiornati: ${result.playersUpdated}\n- Squadre ricalcolate: ${result.teamsRecalculated}`, 'success');
             
             // Ricarica la classifica per mostrare i nuovi punteggi
-            await loadUnifiedRankings();
+            //await loadUnifiedRankings();
         } else {
             const error = await response.json().catch(() => ({ message: 'Errore sconosciuto' }));
             showAlert(error.message || 'Errore nella chiusura della giornata', 'error');

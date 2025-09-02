@@ -195,7 +195,7 @@ export class GameEventsService {
       name: player.name,
       position: player.position || 'N/A',
       yearlyPoints: player.yearlyPoints,
-      ownerName: 'Template Player'
+      ownerName: ''
     }));
   }
 
@@ -230,7 +230,7 @@ export class GameEventsService {
       name: player.name,
       position: player.position || 'N/A',
       yearlyPoints: player.yearlyPoints,
-      ownerName: 'Template Player'
+      ownerName: ''
     }));
   }
 }
