@@ -1831,7 +1831,7 @@ async function closeCurrentEventWithDay() {
         }
     }
     
-    if (!confirm(`⚠️ ATTENZIONE!\n\nStai per chiudere la giornata: ${eventName}\n\nQuesto:\n- Trasferirà tutti i currentPoints → yearlyPoints\n- Azzererà tutti i currentPoints\n- Le squadre inizieranno con 0 punti\n- Verrà registrato nello storico\n\nSei sicuro di voler continuare?`)) {
+    if (!confirm(`⚠️ ATTENZIONE!\n\nStai per chiudere la giornata: ${eventName}\n\nQuesto:\n- Le squadre inizieranno con 0 punti\n- Verrà registrato nello storico\n\nSei sicuro di voler continuare?`)) {
         return;
     }
     
@@ -2006,7 +2006,7 @@ async function loadUnifiedRankings() {
 
 // Chiude la giornata corrente (Sistema Fantasy Football)
 async function closeCurrentEvent() {
-    if (!confirm('⚠️ ATTENZIONE!\n\nStai per chiudere la giornata corrente.\n\nQuesto:\n- Trasferirà tutti i currentPoints → yearlyPoints\n- Azzererà tutti i currentPoints\n- Le squadre inizieranno con 0 punti\n\nSei sicuro di voler continuare?')) {
+    if (!confirm('⚠️ ATTENZIONE!\n\nStai per chiudere la giornata corrente.\n\nQuesto:\n- Azzererà tutti i currentPoints\n- Le squadre inizieranno con 0 punti\n\nSei sicuro di voler continuare?')) {
         return;
     }
     
