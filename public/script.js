@@ -1779,7 +1779,7 @@ async function loadGameEventsForScoring() {
 
             if (events.length === 0) {
                 eventSelect.innerHTML = '<option value="">Nessun evento disponibile per il punteggio</option>';
-                showAlert('Non ci sono eventi aperti disponibili. Crea un nuovo evento per assegnare punteggi.', 'warning');
+                showAlert('Non ci sono eventi aperti disponibili. Crea un nuovo evento per assegnare punteggi.', 'info');
             }
         }
     } catch (error) {
