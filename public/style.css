@@ -856,6 +856,13 @@ body {
     }
 }
 @media (max-width: 480px) {
+    .market-player{
+        display: block;
+        text-align: left;
+    }
+    #admin-team-list, #admin-market-list{
+        display: block;
+    }
     .grid{
         display: block;
     }
