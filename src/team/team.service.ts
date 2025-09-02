@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { User } from '../database/entities/user.entity';
 import { Player } from '../database/entities/player.entity';
+import { UserPlayer } from '../database/entities/user-player.entity';
 import * as crypto from 'crypto';
 
 @Injectable()
@@ -12,12 +13,13 @@ export class TeamService {
     private usersRepository: Repository<User>,
     @InjectRepository(Player)
     private playersRepository: Repository<Player>,
+    @InjectRepository(UserPlayer)
+    private userPlayersRepository: Repository<UserPlayer>,
   ) {}
 
   async loginToTeam(teamName: string, password: string) {
     const user = await this.usersRepository.findOne({ 
-      where: { name: teamName },
-      relations: ['players']
+      where: { name: teamName }
     });
 
     if (!user) {
@@ -35,42 +37,50 @@ export class TeamService {
       throw new UnauthorizedException('Password errata');
     }
 
+    // Get user's players using the new structure
+    const userPlayers = await this.userPlayersRepository.find({
+      where: { userId: user.id },
+      relations: ['player']
+    });
+
     return {
       success: true,
       teamName: user.name,
       credits: user.credits,
       totalPoints: user.totalPoints,
-      players: user.players.map(player => ({
-        id: player.id,
-        name: player.name,
-        position: player.position,
-        currentPoints: player.currentPoints,
-        isInFormation: player.isInFormation || false
+      players: userPlayers.map(userPlayer => ({
+        id: userPlayer.player.id,
+        name: userPlayer.player.name,
+        position: userPlayer.player.position,
+        currentPoints: userPlayer.player.currentPoints,
+        isInFormation: userPlayer.isInFormation || false
       }))
     };
   }
 
   async getTeamFormation(teamId: number) {
     const user = await this.usersRepository.findOne({
-      where: { id: teamId },
-      relations: ['players']
+      where: { id: teamId }
     });
 
     if (!user) {
       throw new UnauthorizedException('Team non trovato');
     }
 
-    const formation = user.players.filter(player => player.isInFormation);
+    const formationUserPlayers = await this.userPlayersRepository.find({
+      where: { userId: teamId, isInFormation: true },
+      relations: ['player']
+    });
     
     return {
       teamName: user.name,
-      formation: formation.map(player => ({
-        id: player.id,
-        name: player.name,
-        position: player.position,
-        currentPoints: player.currentPoints
+      formation: formationUserPlayers.map(userPlayer => ({
+        id: userPlayer.player.id,
+        name: userPlayer.player.name,
+        position: userPlayer.player.position,
+        currentPoints: userPlayer.player.currentPoints
       })),
-      formationCount: formation.length
+      formationCount: formationUserPlayers.length
     };
   }
 
@@ -80,8 +90,7 @@ export class TeamService {
     }
 
     const user = await this.usersRepository.findOne({
-      where: { id: teamId },
-      relations: ['players']
+      where: { id: teamId }
     });
 
     if (!user) {
@@ -89,35 +98,40 @@ export class TeamService {
     }
 
     // Reset formazione esistente
-    await this.playersRepository.update(
-      { owner: { id: teamId } },
+    await this.userPlayersRepository.update(
+      { userId: teamId },
       { isInFormation: false }
     );
 
-    // Imposta nuova formazione
-    const validPlayers = await this.playersRepository.find({
+    // Verifica che i giocatori appartengano al team
+    const validUserPlayers = await this.userPlayersRepository.find({
       where: { 
-        id: In(playerIds),
-        owner: { id: teamId }
-      }
+        playerId: In(playerIds),
+        userId: teamId
+      },
+      relations: ['player']
     });
 
-    if (validPlayers.length !== 8) {
+    if (validUserPlayers.length !== 8) {
       throw new BadRequestException('Alcuni giocatori selezionati non appartengono alla tua squadra');
     }
 
-    await this.playersRepository.update(
-      { id: In(playerIds) },
+    // Imposta nuova formazione
+    await this.userPlayersRepository.update(
+      { 
+        playerId: In(playerIds),
+        userId: teamId
+      },
       { isInFormation: true }
     );
 
     return {
       success: true,
       message: 'Formazione aggiornata con successo',
-      formation: validPlayers.map(player => ({
-        id: player.id,
-        name: player.name,
-        position: player.position
+      formation: validUserPlayers.map(userPlayer => ({
+        id: userPlayer.player.id,
+        name: userPlayer.player.name,
+        position: userPlayer.player.position
       }))
     };
   }

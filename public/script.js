@@ -143,6 +143,8 @@ async function loadInitialData() {
     events = await apiCall('/events');
     topPlayer = await apiCall('/players/top-player');
     await loadPublicGameEvents();
+
+
 }
 
 function hideLoading() {
@@ -205,23 +207,41 @@ function updateUserSelect() {
     }
 }
 
+let isUpdatingAdminPlayerSelect = false;
+
 function updateAdminPlayerSelect() {
     const playerSelect = document.getElementById('admin-player-select');
     if (!playerSelect) {
         return;
     }
     
+    // Prevent multiple simultaneous updates
+    if (isUpdatingAdminPlayerSelect) {
+        return;
+    }
+    
+    isUpdatingAdminPlayerSelect = true;
     playerSelect.innerHTML = '<option value="">Scegli giocatore...</option>';
 
     fetch(`${API_BASE}/players`)
         .then(response => response.json())
         .then(allPlayers => {
+            // Clear the select again in case another call modified it
+            playerSelect.innerHTML = '<option value="">Scegli giocatore...</option>';
+            
             allPlayers.forEach(player => {
                 const option = document.createElement('option');
                 option.value = player.id;
                 option.textContent = `${player.name} (${player.currentPoints} pts)`;
                 playerSelect.appendChild(option);
             });
+        })
+        .catch(error => {
+            console.error('Error updating admin player select:', error);
+            playerSelect.innerHTML = '<option value="">Errore nel caricamento...</option>';
+        })
+        .finally(() => {
+            isUpdatingAdminPlayerSelect = false;
         });
 }
 
@@ -672,7 +692,7 @@ async function adminBuyPlayer(playerId, playerValue) {
     }
 
     try {
-        const result = await adminApiCall('/admin/buy-player', {
+        const result = await adminApiCall('/market/admin/buy-player', {
             method: 'POST',
             body: JSON.stringify({
                 teamId: parseInt(selectedTeam),
@@ -700,7 +720,7 @@ async function adminSellPlayer(playerId) {
     }
 
     try {
-        const result = await adminApiCall('/admin/sell-player', {
+        const result = await adminApiCall('/market/admin/sell-player', {
             method: 'POST',
             body: JSON.stringify({
                 teamId: parseInt(selectedTeam),
@@ -1723,5 +1743,294 @@ async function loadPublicGameEvents() {
         }
     } catch (error) {
         console.error('Errore nel caricamento degli eventi pubblici:', error);
+    }
+}
+
+// ===== FUNZIONI PER SISTEMA UNIFICATO =====
+
+// Carica eventi per il dropdown unificato (solo eventi aperti)
+async function loadGameEventsForScoring() {
+    try {
+        const response = await fetch(`${API_BASE}/admin-eventi`, {
+            headers: {
+                'admin-password': adminPassword
+            }
+        });
+        
+        if (response.ok) {
+            const events = await response.json();
+            const eventSelect = document.getElementById('unified-event-select');
+            
+            // Non includere più l'opzione generica
+            eventSelect.innerHTML = '<option value="">Seleziona un evento...</option>';
+            
+            events.forEach(event => {
+                const option = document.createElement('option');
+                option.value = event.id;
+                option.textContent = `${event.name} (${new Date(event.date).toLocaleDateString('it-IT')})`;
+                eventSelect.appendChild(option);
+            });
+
+            if (events.length === 0) {
+                eventSelect.innerHTML = '<option value="">Nessun evento disponibile per il punteggio</option>';
+                showAlert('Non ci sono eventi aperti disponibili. Crea un nuovo evento per assegnare punteggi.', 'warning');
+            }
+        }
+    } catch (error) {
+        console.error('Errore nel caricamento degli eventi:', error);
+        showAlert('Errore nel caricamento degli eventi', 'error');
+    }
+}
+
+// Carica eventi per il dropdown di chiusura giornata (solo eventi non chiusi)
+async function loadGameEventsForDayClosure() {
+    try {
+        const response = await fetch(`${API_BASE}/admin-eventi-chiusura`, {
+            headers: {
+                'admin-password': adminPassword
+            }
+        });
+        
+        if (response.ok) {
+            const events = await response.json();
+            const eventSelect = document.getElementById('day-closure-event-select');
+            
+            if (eventSelect) {
+                // Mantieni l'opzione di default
+                eventSelect.innerHTML = '<option value="">Seleziona evento/giornata...</option>';
+                
+                events.forEach(event => {
+                    const option = document.createElement('option');
+                    option.value = event.id;
+                    option.textContent = `${event.name} (${new Date(event.date).toLocaleDateString('it-IT')})`;
+                    eventSelect.appendChild(option);
+                });
+
+                if (events.length === 0) {
+                    eventSelect.innerHTML = '<option value="">Nessun evento disponibile per la chiusura</option>';
+                    showAlert('Non ci sono eventi aperti disponibili per la chiusura. Tutti gli eventi sono già stati chiusi o non esistono eventi.', 'info');
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Errore nel caricamento degli eventi per chiusura:', error);
+        showAlert('Errore nel caricamento degli eventi per chiusura giornata', 'error');
+    }
+}
+
+// Chiude la giornata corrente con riferimento all'evento
+async function closeCurrentEventWithDay() {
+    const selectedEventId = document.getElementById('day-closure-event-select').value;
+    const eventSelect = document.getElementById('day-closure-event-select');
+    
+    let eventName = 'Giornata Generica';
+    if (selectedEventId && eventSelect) {
+        const selectedOption = eventSelect.querySelector(`option[value="${selectedEventId}"]`);
+        if (selectedOption) {
+            eventName = selectedOption.textContent;
+        }
+    }
+    
+    if (!confirm(`⚠️ ATTENZIONE!\n\nStai per chiudere la giornata: ${eventName}\n\nQuesto:\n- Trasferirà tutti i currentPoints → yearlyPoints\n- Azzererà tutti i currentPoints\n- Le squadre inizieranno con 0 punti\n- Verrà registrato nello storico\n\nSei sicuro di voler continuare?`)) {
+        return;
+    }
+    
+    try {
+        const requestBody = {};
+        if (selectedEventId) {
+            requestBody.eventId = parseInt(selectedEventId);
+            requestBody.eventName = eventName;
+        }
+        
+        const response = await fetch(`${API_BASE}/close-current-event`, {
+            method: 'POST',
+            headers: {
+                'admin-password': adminPassword,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(requestBody)
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            showAlert(`🏁 ${result.message}\n\n📊 Statistiche:\n- Giocatori aggiornati: ${result.playersUpdated}\n- Squadre ricalcolate: ${result.teamsRecalculated}\n- Giornata: ${eventName}`, 'success');
+            
+            // Reset della selezione
+            document.getElementById('day-closure-event-select').value = '';
+            
+            // Ricarica la classifica per mostrare i nuovi punteggi
+            await loadUnifiedRankings();
+        } else {
+            const error = await response.json().catch(() => ({ message: 'Errore sconosciuto' }));
+            showAlert(error.message || 'Errore nella chiusura della giornata', 'error');
+        }
+    } catch (error) {
+        console.error('Errore nella chiusura della giornata:', error);
+        showAlert('Errore nella chiusura della giornata', 'error');
+    }
+}
+
+// Funzione unificata per aggiornare i punteggi
+async function updatePlayerScore() {
+    const playerId = document.getElementById('admin-player-select').value;
+    const eventType = document.getElementById('event-type').value;
+    const customPoints = document.getElementById('custom-points').value;
+    const description = document.getElementById('event-description').value;
+    const selectedEventId = document.getElementById('unified-event-select').value;
+    
+    if (!playerId) {
+        showAlert('Seleziona un giocatore', 'error');
+        return;
+    }
+
+    // NUOVO: Validazione obbligatoria per l'evento
+    if (!selectedEventId) {
+        showAlert('È obbligatorio selezionare un evento. Non sono più consentite giocate generiche.', 'error');
+        return;
+    }
+    
+    let points = 0;
+    
+    // Determina i punti da assegnare
+    if (customPoints) {
+        points = parseFloat(customPoints);
+    } else if (eventType) {
+        points = parseFloat(eventType);
+    } else {
+        showAlert('Seleziona un tipo evento o inserisci punti personalizzati', 'error');
+        return;
+    }
+    
+    try {
+        // Usa il nuovo endpoint unificato
+        const requestBody = {
+            playerId: parseInt(playerId),
+            points: points,
+            description: description || undefined,
+            gameEventId: parseInt(selectedEventId) // Ora sempre obbligatorio
+        };
+        
+        const response = await fetch(`${API_BASE}/update-score`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'admin-password': adminPassword
+            },
+            body: JSON.stringify(requestBody)
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            showAlert(result.message, 'success');
+            
+            // Reset form
+            document.getElementById('event-type').value = '';
+            document.getElementById('custom-points').value = '';
+            document.getElementById('event-description').value = '';
+            
+            // Refresh data
+            await loadInitialData();
+            updateUI();
+            loadUnifiedRankings();
+        } else {
+            const error = await response.json();
+            showAlert(error.message || 'Errore nell\'aggiornamento del punteggio', 'error');
+        }
+    } catch (error) {
+        console.error('Errore nell\'aggiornamento del punteggio:', error);
+        showAlert('Errore nell\'aggiornamento del punteggio', 'error');
+    }
+}
+
+// Carica classifica unificata (usa sempre i punteggi basati su eventi)
+async function loadUnifiedRankings() {
+    try {
+        const response = await fetch(`${API_BASE}/event-rankings`, {
+            headers: {
+                'admin-password': adminPassword
+            }
+        });
+        
+        if (response.ok) {
+            const rankings = await response.json();
+            const container = document.getElementById('unified-rankings');
+            
+            if (rankings.length === 0) {
+                container.innerHTML = '<p style="color: #718096;">Nessun punteggio registrato ancora.</p>';
+                return;
+            }
+            
+            let html = `
+                <table class="ranking-table" style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background-color: #f7fafc; border-bottom: 2px solid #e2e8f0;">
+                            <th style="padding: 10px; text-align: left; border: 1px solid #e2e8f0;">Pos</th>
+                            <th style="padding: 10px; text-align: left; border: 1px solid #e2e8f0;">Team</th>
+                            <th style="padding: 10px; text-align: center; border: 1px solid #e2e8f0;">Punti Totali</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            rankings.forEach((team, index) => {
+                const rowClass = index < 3 ? 'top-3' : '';
+                html += `
+                    <tr class="${rowClass}" style="border-bottom: 1px solid #e2e8f0;">
+                        <td style="padding: 8px; border: 1px solid #e2e8f0; font-weight: bold;">${index + 1}</td>
+                        <td style="padding: 8px; border: 1px solid #e2e8f0;">${team.userName}</td>
+                        <td style="padding: 8px; border: 1px solid #e2e8f0; text-align: center; font-weight: bold;">${team.totalPoints}</td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                    </tbody>
+                </table>
+                <p style="margin-top: 15px; font-size: 0.9em; color: #718096;">
+                    <strong>Sistema Unificato:</strong> Tutti i punteggi sono ora collegati ad eventi per garantire l'integrità della classifica. I punteggi non cambiano retroattivamente con le modifiche alla formazione.
+                </p>
+            `;
+            
+            container.innerHTML = html;
+            showAlert('Classifica aggiornata con successo!', 'success');
+        } else {
+            const error = await response.json().catch(() => ({ message: 'Errore sconosciuto' }));
+            console.error('Errore API ranking:', error);
+            showAlert(error.message || 'Errore nel caricamento della classifica', 'error');
+        }
+    } catch (error) {
+        console.error('Errore nel caricamento della classifica unificata:', error);
+        showAlert('Errore nel caricamento della classifica unificata', 'error');
+    }
+}
+
+// Chiude la giornata corrente (Sistema Fantasy Football)
+async function closeCurrentEvent() {
+    if (!confirm('⚠️ ATTENZIONE!\n\nStai per chiudere la giornata corrente.\n\nQuesto:\n- Trasferirà tutti i currentPoints → yearlyPoints\n- Azzererà tutti i currentPoints\n- Le squadre inizieranno con 0 punti\n\nSei sicuro di voler continuare?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE}/close-current-event`, {
+            method: 'POST',
+            headers: {
+                'admin-password': adminPassword,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            showAlert(`🏁 ${result.message}\n\n📊 Statistiche:\n- Giocatori aggiornati: ${result.playersUpdated}\n- Squadre ricalcolate: ${result.teamsRecalculated}`, 'success');
+            
+            // Ricarica la classifica per mostrare i nuovi punteggi
+            await loadUnifiedRankings();
+        } else {
+            const error = await response.json().catch(() => ({ message: 'Errore sconosciuto' }));
+            showAlert(error.message || 'Errore nella chiusura della giornata', 'error');
+        }
+    } catch (error) {
+        console.error('Errore nella chiusura della giornata:', error);
+        showAlert('Errore nella chiusura della giornata', 'error');
     }
 }

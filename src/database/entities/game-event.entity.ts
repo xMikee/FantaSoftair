@@ -17,6 +17,9 @@ export class GameEvent {
   @Column({ default: true })
   active: boolean;
 
+  @Column({ default: false })
+  closed: boolean;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 

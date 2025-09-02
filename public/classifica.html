@@ -33,9 +33,23 @@
         
         <div id="ranking-list"></div>
 
-
-        <div id="ranking-best-player"></div>
-        <div id="ranking-loser-player"></div>
+        <!-- Classifiche Giocatori dell'Anno -->
+        <div class="grid grid-2" style="margin-top: 30px;">
+            <div class="card">
+                <h3>🏆 Migliori Giocatori dell'Anno</h3>
+                <p style="color: #718096; font-size: 0.9em; margin-bottom: 15px;">
+                    Basato sui punti accumulati nell'anno (yearlyPoints)
+                </p>
+                <div id="ranking-best-player"></div>
+            </div>
+            <div class="card">
+                <h3>💀 Peggiori Giocatori dell'Anno</h3>
+                <p style="color: #718096; font-size: 0.9em; margin-bottom: 15px;">
+                    Giocatori con più punti negativi nell'anno
+                </p>
+                <div id="ranking-loser-player"></div>
+            </div>
+        </div>
         <!-- Footer Component -->
         <div id="footer-container"></div>
     </div>
@@ -53,6 +67,11 @@
             
             await loadInitialData();
             updateUI();
+            
+            // Carica le classifiche giocatori
+            await loadBestPlayersRanking();
+            await loadWorstPlayersRanking();
+            
             hideLoading();
             showAlert('Classifica caricata con successo!', 'success');
         } catch (error) {
@@ -61,6 +80,68 @@
             hideLoading();
         }
     });
+
+    // Carica classifica migliori giocatori
+    async function loadBestPlayersRanking() {
+        try {
+            const response = await fetch(`${API_BASE}/market/best-players`);
+            if (response.ok) {
+                const players = await response.json();
+                displayPlayersRanking(players, 'ranking-best-player', true);
+            }
+        } catch (error) {
+            console.error('Errore nel caricamento dei migliori giocatori:', error);
+        }
+    }
+
+    // Carica classifica peggiori giocatori  
+    async function loadWorstPlayersRanking() {
+        try {
+            const response = await fetch(`${API_BASE}/market/worst-players`);
+            if (response.ok) {
+                const players = await response.json();
+                displayPlayersRanking(players, 'ranking-loser-player', false);
+            }
+        } catch (error) {
+            console.error('Errore nel caricamento dei peggiori giocatori:', error);
+        }
+    }
+
+    // Visualizza classifica giocatori
+    function displayPlayersRanking(players, containerId, isBest) {
+        const container = document.getElementById(containerId);
+        
+        if (players.length === 0) {
+            container.innerHTML = `<p style="text-align: center; color: #718096;">Nessun giocatore da mostrare ancora.</p>`;
+            return;
+        }
+
+        let html = '<div class="players-ranking">';
+        
+        players.forEach((player, index) => {
+            const position = index + 1;
+            const pointsClass = player.yearlyPoints > 0 ? 'positive' : (player.yearlyPoints < 0 ? 'negative' : 'neutral');
+            const positionIcon = position <= 3 ? ['🥇', '🥈', '🥉'][position - 1] : `#${position}`;
+            
+            html += `
+                <div class="player-item" style="display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px solid #e2e8f0; font-size: 0.9em;">
+                    <div style="display: flex; align-items: center;">
+                        <span style="font-weight: bold; margin-right: 8px; min-width: 35px;">${positionIcon}</span>
+                        <div>
+                            <div style="font-weight: bold;">${player.name}</div>
+                            <div style="font-size: 0.8em; color: #718096;">${player.position} • ${player.ownerName}</div>
+                        </div>
+                    </div>
+                    <div style="font-weight: bold; color: ${player.yearlyPoints > 0 ? '#38a169' : (player.yearlyPoints < 0 ? '#e53e3e' : '#718096')};">
+                        ${player.yearlyPoints > 0 ? '+' : ''}${player.yearlyPoints}
+                    </div>
+                </div>
+            `;
+        });
+        
+        html += '</div>';
+        container.innerHTML = html;
+    }
 </script>
 </body>
 </html>

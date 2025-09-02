@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany, CreateDateColumn } from 'typeorm';
-import { Player } from './player.entity';
+import { UserPlayer } from './user-player.entity';
 
 @Entity('users')
 export class User {
@@ -21,6 +21,6 @@ export class User {
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
-  @OneToMany(() => Player, player => player.owner)
-  players: Player[];
+  @OneToMany(() => UserPlayer, userPlayer => userPlayer.user)
+  userPlayers: UserPlayer[];
 }

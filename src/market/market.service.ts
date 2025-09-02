@@ -3,8 +3,11 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../database/entities/user.entity';
 import { Player } from '../database/entities/player.entity';
+import { UserPlayer } from '../database/entities/user-player.entity';
 import { UsersService } from '../users/users.service';
 import { PlayersService } from '../players/players.service';
+import { EventScoringService } from '../event-scoring/event-scoring.service';
+import { GameEventsService } from '../game-events/game-events.service';
 
 @Injectable()
 export class MarketService {
@@ -13,8 +16,12 @@ export class MarketService {
     private usersRepository: Repository<User>,
     @InjectRepository(Player)
     private playersRepository: Repository<Player>,
+    @InjectRepository(UserPlayer)
+    private userPlayersRepository: Repository<UserPlayer>,
     private usersService: UsersService,
     private playersService: PlayersService,
+    private eventScoringService: EventScoringService,
+    private gameEventsService: GameEventsService,
   ) {}
 
   async buyPlayerForTeam(targetUserId: number, playerId: number) {
@@ -23,59 +30,59 @@ export class MarketService {
       throw new BadRequestException('Utente non trovato');
     }
 
-    const originalPlayer = await this.playersRepository.findOne({
+    const player = await this.playersRepository.findOne({
       where: { id: playerId }
     });
     
-    if (!originalPlayer) {
+    if (!player) {
       throw new BadRequestException('Giocatore non trovato');
     }
 
-    const existingPlayer = await this.playersRepository.findOne({
-      where: { name: originalPlayer.name, ownerId: targetUserId }
+    const existingUserPlayer = await this.userPlayersRepository.findOne({
+      where: { userId: targetUserId, playerId: playerId }
     });
 
-    if (existingPlayer) {
+    if (existingUserPlayer) {
       throw new BadRequestException('Giocatore già presente nella squadra');
     }
 
-    if (user.credits < originalPlayer.baseValue) {
+    if (user.credits < player.baseValue) {
       throw new BadRequestException('Crediti insufficienti per questa squadra');
     }
 
-    const teamSize = await this.playersService.countByOwner(targetUserId);
+    const teamSize = await this.userPlayersRepository.count({
+      where: { userId: targetUserId }
+    });
     if (teamSize >= 11) {
       throw new BadRequestException('Squadra completa (11 giocatori max)');
     }
 
-    const newPlayer = this.playersRepository.create({
-      name: originalPlayer.name,
-      baseValue: originalPlayer.baseValue,
-      currentPoints: originalPlayer.currentPoints,
-      ownerId: targetUserId,
+    const userPlayer = this.userPlayersRepository.create({
+      userId: targetUserId,
+      playerId: playerId,
       selectedForLineup: false,
-      isInFormation: false,
-      position: originalPlayer.position
+      isInFormation: false
     });
 
-    await this.playersRepository.save(newPlayer);
-    await this.usersService.adjustCredits(targetUserId, -originalPlayer.baseValue);
+    await this.userPlayersRepository.save(userPlayer);
+    await this.usersService.adjustCredits(targetUserId, -player.baseValue);
 
     return {
       success: true,
       message: `Giocatore acquistato con successo per ${user.name}!`,
-      playerName: originalPlayer.name,
+      playerName: player.name,
       teamName: user.name,
-      cost: originalPlayer.baseValue
+      cost: player.baseValue
     };
   }
 
   async sellPlayerFromTeam(targetUserId: number, playerId: number) {
-    const player = await this.playersRepository.findOne({
-      where: { id: playerId, ownerId: targetUserId }
+    const userPlayer = await this.userPlayersRepository.findOne({
+      where: { userId: targetUserId, playerId: playerId },
+      relations: ['player']
     });
 
-    if (!player) {
+    if (!userPlayer) {
       throw new BadRequestException('Giocatore non trovato nella squadra specificata');
     }
 
@@ -84,37 +91,75 @@ export class MarketService {
       throw new BadRequestException('Utente non trovato');
     }
 
-    const sellValue = Math.floor(player.baseValue * 0.8);
+    const sellValue = Math.floor(userPlayer.player.baseValue * 0.8);
 
-    await this.playersService.updateOwner(playerId, null);
+    await this.userPlayersRepository.remove(userPlayer);
     await this.usersService.adjustCredits(targetUserId, sellValue);
 
     return {
       success: true,
-      message: `Giocatore ${player.name} venduto dalla squadra ${user.name} per ${sellValue} crediti!`,
-      playerName: player.name,
+      message: `Giocatore ${userPlayer.player.name} venduto dalla squadra ${user.name} per ${sellValue} crediti!`,
+      playerName: userPlayer.player.name,
       teamName: user.name,
       sellValue: sellValue
     };
   }
 
   async getRanking() {
+    // CLASSIFICA GENERALE: Usa i total_points dal database che sono già aggiornati
+    // Se necessario, calcola dinamicamente i punti sommando i yearlyPoints dei giocatori in formazione
     const result = await this.usersRepository
       .createQueryBuilder('user')
-      .leftJoin('user.players', 'player')
+      .leftJoin('user.userPlayers', 'userPlayer')
       .select('user.id', 'id')
       .addSelect('user.name', 'name')
       .addSelect('user.credits', 'credits')
       .addSelect('user.totalPoints', 'total_points')
-      .addSelect('COUNT(player.id)', 'team_size')
-      .addSelect('COUNT(CASE WHEN player.selectedForLineup = :selected THEN 1 END)', 'lineup_size')
+      .addSelect('COUNT(userPlayer.id)', 'team_size')
+      .addSelect('COUNT(CASE WHEN userPlayer.isInFormation = :inFormation THEN 1 END)', 'lineup_size')
+      .setParameter('inFormation', true)
+      .groupBy('user.id')
+      .addGroupBy('user.name')
+      .addGroupBy('user.credits')
+      .addGroupBy('user.totalPoints')
+      .getRawMany();
+    
+    // Sort by total points descending, then by name ascending for ties
+    return result.sort((a, b) => {
+      if (b.total_points !== a.total_points) {
+        return b.total_points - a.total_points;
+      }
+      return a.name.localeCompare(b.name);
+    });
+  }
+
+  async getEventBasedRanking() {
+    // NUOVO SISTEMA FANTASY: Usa direttamente i totalPoints delle squadre
+    const result = await this.usersRepository
+      .createQueryBuilder('user')
+      .leftJoin('user.userPlayers', 'userPlayer')
+      .select('user.id', 'id')
+      .addSelect('user.name', 'name')
+      .addSelect('user.credits', 'credits')
+      .addSelect('user.totalPoints', 'total_points')
+      .addSelect('COUNT(userPlayer.id)', 'team_size')
+      .addSelect('COUNT(CASE WHEN userPlayer.selectedForLineup = :selected THEN 1 END)', 'lineup_size')
       .setParameter('selected', true)
       .groupBy('user.id')
       .addGroupBy('user.name')
+      .addGroupBy('user.credits')
       .addGroupBy('user.totalPoints')
       .orderBy('user.totalPoints', 'DESC')
       .getRawMany();
 
     return result;
+  }
+
+  async getBestPlayersRanking(limit: number = 10) {
+    return this.gameEventsService.getBestPlayersRanking(limit);
+  }
+
+  async getWorstPlayersRanking(limit: number = 10) {
+    return this.gameEventsService.getWorstPlayersRanking(limit);
   }
 }

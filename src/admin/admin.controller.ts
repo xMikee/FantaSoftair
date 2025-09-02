@@ -1,6 +1,7 @@
 import { Body, Controller, Post, UseGuards, Get, Res, Req, Param } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { UpdateScoreDto } from './dto/update-score.dto';
+import { UpdateEventScoreDto } from './dto/update-event-score.dto';
 import { ResetSystemDto } from './dto/reset-system.dto';
 import { AdminGuard } from '../auth/guards/admin.guard';
 import { ApiTags, ApiOperation, ApiResponse, ApiHeader } from '@nestjs/swagger';
@@ -39,7 +40,21 @@ export class AdminController {
     return this.adminService.updateScore(
       updateScoreDto.playerId,
       updateScoreDto.points,
-      updateScoreDto.description
+      updateScoreDto.description,
+      updateScoreDto.gameEventId
+    );
+  }
+
+  @Post('update-event-score')
+  @ApiOperation({ summary: 'Update player score for specific event (Admin only)' })
+  @ApiResponse({ status: 200, description: 'Event score updated successfully' })
+  @ApiResponse({ status: 401, description: 'Admin authentication required' })
+  async updateEventScore(@Body() updateEventScoreDto: UpdateEventScoreDto) {
+    return this.adminService.updateEventScore(
+      updateEventScoreDto.playerId,
+      updateEventScoreDto.gameEventId,
+      updateEventScoreDto.points,
+      updateEventScoreDto.description
     );
   }
 
@@ -72,8 +87,17 @@ export class AdminController {
   @ApiResponse({ status: 200, description: 'List of all game events' })
   @ApiResponse({ status: 401, description: 'Admin authentication required' })
   async getAllGameEvents() {
-    // Per l'admin, mostra tutti gli eventi (attivi e inattivi)
+    // Per l'admin, mostra eventi attivi e non chiusi per il punteggio
     return this.adminService.getAllGameEventsForAdmin();
+  }
+
+  @Get('admin-eventi-chiusura')
+  @ApiOperation({ summary: 'Get all events available for day closure' })
+  @ApiResponse({ status: 200, description: 'List of events available for closure' })
+  @ApiResponse({ status: 401, description: 'Admin authentication required' })
+  async getAllGameEventsForDayClosure() {
+    // Per la chiusura giornata, mostra solo eventi non chiusi
+    return this.adminService.getAllGameEventsForDayClosure();
   }
 
   @Post('admin-eventi')
@@ -100,4 +124,30 @@ export class AdminController {
     await this.adminService.gameEventsService.remove(+id);
     return { message: 'Evento eliminato con successo' };
   }
+
+  @Get('event-rankings')
+  @ApiOperation({ summary: 'Get event-based rankings (Admin only)' })
+  @ApiResponse({ status: 200, description: 'Event-based rankings retrieved successfully' })
+  @ApiResponse({ status: 401, description: 'Admin authentication required' })
+  async getEventBasedRankings() {
+    return this.adminService.getEventBasedRankings();
+  }
+
+  @Get('user-event-history/:userId')
+  @ApiOperation({ summary: 'Get user event history (Admin only)' })
+  @ApiResponse({ status: 200, description: 'User event history retrieved successfully' })
+  @ApiResponse({ status: 401, description: 'Admin authentication required' })
+  async getUserEventHistory(@Param('userId') userId: string) {
+    return this.adminService.getUserEventHistory(+userId);
+  }
+
+  @Post('close-current-event')
+  @ApiOperation({ summary: 'Close current event - transfer currentPoints to yearlyPoints and reset currentPoints (Admin only)' })
+  @ApiResponse({ status: 200, description: 'Event closed successfully' })
+  @ApiResponse({ status: 401, description: 'Admin authentication required' })
+  async closeCurrentEvent(@Body() body?: { eventId?: number; eventName?: string }) {
+    return this.adminService.closeCurrentEvent(body?.eventId, body?.eventName);
+  }
+
+
 }

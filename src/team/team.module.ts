@@ -4,9 +4,10 @@ import { TeamController } from './team.controller';
 import { TeamService } from './team.service';
 import { User } from '../database/entities/user.entity';
 import { Player } from '../database/entities/player.entity';
+import { UserPlayer } from '../database/entities/user-player.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, Player])],
+  imports: [TypeOrmModule.forFeature([User, Player, UserPlayer])],
   controllers: [TeamController],
   providers: [TeamService],
   exports: [TeamService],

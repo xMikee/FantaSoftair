@@ -46,7 +46,7 @@ export class PlayersController {
 
     // Set selected players
     for (const playerId of playerIds) {
-      await this.playersService.updateLineupSelection(playerId, true);
+      await this.playersService.updateLineupSelection(playerId, userId, true);
     }
 
     return {

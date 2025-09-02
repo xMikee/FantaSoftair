@@ -3,11 +3,13 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { PlayersController } from './players.controller';
 import { PlayersService } from './players.service';
 import { Player } from '../database/entities/player.entity';
+import { UserPlayer } from '../database/entities/user-player.entity';
+import { User } from '../database/entities/user.entity';
 import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Player]),
+    TypeOrmModule.forFeature([Player, UserPlayer, User]),
     AuthModule,
   ],
   controllers: [PlayersController],

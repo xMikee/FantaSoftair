@@ -54,7 +54,17 @@
             </div>
             <div class="grid grid-2">
                 <div class="card">
-                    <h3>Aggiorna Punteggi</h3>
+                    <h3>🎯 Aggiorna Punteggi (Sistema Unificato)</h3>
+                    <p style="margin-bottom: 15px; color: #718096; font-size: 0.9em;">
+                        Tutti i punteggi sono ora collegati ad eventi per garantire l'integrità della classifica
+                    </p>
+                    <div class="form-group">
+                        <label>Seleziona Evento (Obbligatorio):</label>
+                        <select id="unified-event-select" required>
+                            <option value="">Seleziona un evento...</option>
+                        </select>
+                        <small style="color: #dc3545; font-weight: bold;">⚠️ È obbligatorio selezionare un evento. Non sono più consentite giocate generiche.</small>
+                    </div>
                     <div class="form-group">
                         <label>Seleziona Giocatore:</label>
                         <select id="admin-player-select">
@@ -107,12 +117,49 @@
                         <input type="text" id="event-description" placeholder="Descrizione dell'evento">
                     </div>
                     <button class="btn btn-success" onclick="updatePlayerScore()">Aggiorna Punteggio</button>
+                    
+                    <hr style="margin: 20px 0; border-color: #e2e8f0;">
+                    
+                    <div class="day-closure-section">
+                        <h4>🏁 Chiusura Giornata</h4>
+                        <p style="margin-bottom: 15px; color: #718096; font-size: 0.9em;">
+                            <strong>Sistema Fantasy Football:</strong> Chiudi la giornata per trasferire i punti nello storico annuale e azzerare per il prossimo evento.
+                        </p>
+                        
+                        <div class="form-group">
+                            <label>Seleziona Giornata/Evento da Chiudere:</label>
+                            <select id="day-closure-event-select">
+                                <option value="">Seleziona evento/giornata...</option>
+                            </select>
+                            <small style="color: #718096;">Seleziona quale evento/giornata stai chiudendo per registrarlo nello storico</small>
+                        </div>
+                        
+                        <button class="btn btn-warning" onclick="closeCurrentEventWithDay()" style="margin-bottom: 10px;">
+                            🏁 Chiudi Giornata Selezionata
+                        </button>
+                        <p style="font-size: 0.9em; color: #718096;">
+                            ⚠️ Questo trasferirà tutti i currentPoints → yearlyPoints e azzererà currentPoints per la prossima giornata.
+                        </p>
+                    </div>
                 </div>
                 <div class="card">
                     <h3>Storico Eventi</h3>
                     <div id="event-history"></div>
                 </div>
             </div>
+
+            <!-- Sezione Classifica Unificata -->
+            <div class="card" style="margin-top: 20px;">
+                <h3>🏆 Classifica Unificata</h3>
+                <p style="margin-bottom: 15px; color: #718096;">
+                    Classifica basata su tutti i punteggi collegati ad eventi - garantisce integrità storica
+                </p>
+                <button class="btn btn-info" onclick="loadUnifiedRankings()">Aggiorna Classifica</button>
+                <div id="unified-rankings" style="margin-top: 15px;">
+                    Clicca "Aggiorna Classifica" per visualizzare
+                </div>
+            </div>
+
 
             <div class="card">
                 <h3>Reset Sistema</h3>
@@ -223,6 +270,9 @@
             updateAdminTeamSelect();
             updateAdminPlayerSelect();
             await loadGameEvents();
+            await loadGameEventsForScoring();
+            await loadGameEventsForDayClosure();
+            await loadUnifiedRankings();
             
             // Make sure the admin section is visible
             const adminSection = document.getElementById('admin');
