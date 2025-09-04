@@ -2,6 +2,21 @@
 
 Sistema avanzato di gestione fantasy per il club A-Team con mercato giocatori, punteggi per eventi, classifiche in tempo reale e admin panel completo.
 
+## 🔄 Aggiornamenti Recenti
+
+### **Migrazione Database - Settembre 2024**
+- **Da SQLite a MySQL**: Sistema migrato a database MySQL per performance superiori
+- **Reset completo database**: Sistema pulito per nuova stagione
+- **Struttura ottimizzata**: Schema database MySQL professionale
+- **Performance enhanced**: Velocità e scalabilità notevolmente migliorate
+- **Dati freschi**: Eliminati dati di test e sviluppo
+
+### **Miglioramenti Sistema**
+- **Stabilità aumentata**: Correzione bug minori
+- **UI responsive**: Ottimizzazioni mobile e desktop
+- **Gestione eventi**: Sistema più fluido per assegnazione punteggi
+- **Admin panel**: Interface migliorata per gestione sistema
+
 ## 🚀 Nuove Funzionalità Implementate
 
 ### ✨ Sistema Eventi e Punteggi Avanzato
@@ -31,10 +46,10 @@ Sistema avanzato di gestione fantasy per il club A-Team con mercato giocatori, p
 
 ## 🏗️ Architettura
 
-### **Backend**: NestJS + TypeORM + SQLite
+### **Backend**: NestJS + TypeORM + MySQL
 - Framework modulare e altamente scalabile
 - API REST completamente documentate
-- Database SQLite con relazioni complesse
+- Database MySQL con relazioni complesse e performance ottimizzate
 - Validazione automatica e type safety
 
 ### **Frontend**: Vanilla JavaScript + CSS3
@@ -47,7 +62,7 @@ Sistema avanzato di gestione fantasy per il club A-Team con mercato giocatori, p
 ### Prerequisiti
 - Node.js 18+
 - npm
-- SQLite3
+- MySQL 8.0+ (o MariaDB 10.5+)
 
 ### 1. Clona il progetto
 ```bash
@@ -60,29 +75,78 @@ cd FantaSoftair
 npm install
 ```
 
-### 3. Crea il Database
+### 3. Configura il Database MySQL
 
-**IMPORTANTE**: Il database non è incluso nel repository. Segui questi passaggi per crearlo:
+**IMPORTANTE**: Il sistema è stato migrato da SQLite a MySQL per performance superiori.
+
+**NOTA MIGRAZIONE**: Il database è stato cambiato da SQLite a MySQL per:
+- Performance e scalabilità migliorate
+- Supporto concurrent access
+- Gestione transazioni avanzate
+- Backup e recovery professionali
+
+#### Configurazione MySQL
 
 ```bash
-# Crea la cartella data se non esiste
-mkdir -p data
+# 1. Installa e avvia MySQL
+# Su Ubuntu/Debian:
+sudo apt update
+sudo apt install mysql-server
+sudo systemctl start mysql
 
+# Su macOS con Homebrew:
+brew install mysql
+brew services start mysql
+
+# Su Windows: Scarica MySQL Installer
+```
+
+#### Crea Database e Utente
+
+```sql
+# Accedi a MySQL come root
+mysql -u root -p
+
+# Crea il database
+CREATE DATABASE fanta_softair CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+# Crea utente dedicato (opzionale ma consigliato)
+CREATE USER 'fanta_user'@'localhost' IDENTIFIED BY 'fanta_password';
+GRANT ALL PRIVILEGES ON fanta_softair.* TO 'fanta_user'@'localhost';
+FLUSH PRIVILEGES;
+EXIT;
+```
+
+#### Configurazione Environment (Opzionale)
+
+```bash
+# Crea file .env nella root del progetto
+echo "DB_HOST=localhost" >> .env
+echo "DB_PORT=3306" >> .env
+echo "DB_USERNAME=fanta_user" >> .env
+echo "DB_PASSWORD=fanta_password" >> .env
+echo "DB_NAME=fanta_softair" >> .env
+```
+
+### 4. Prima Esecuzione e Setup Tabelle
+
+```bash
 # Avvia l'applicazione in modalità development
-# TypeORM creerà automaticamente il database e le tabelle
+# TypeORM creerà automaticamente le tabelle MySQL
 npm run start:dev
 ```
 
-Il database `fanta-softair.db` verrà creato automaticamente nella cartella `data/` al primo avvio.
+**NOTA**: Al primo avvio, TypeORM creerà automaticamente tutte le tabelle nel database MySQL basandosi sulle entità definite.
 
 #### Popolamento Dati Iniziali (Opzionale)
 
 ```bash
-# Se hai uno script di popolamento
+# IMPORTANTE: Prima aggiorna populate-teams.js per MySQL
+# Poi esegui il popolamento
 node populate-teams.js
 ```
 
-### 4. Avvia l'Applicazione
+### 5. Avvia l'Applicazione
 
 #### Modalità Sviluppo (Consigliata)
 ```bash
@@ -98,7 +162,7 @@ npm run build
 npm run start:prod
 ```
 
-### 5. Accedi all'Applicazione
+### 6. Accedi all'Applicazione
 - **App**: http://localhost:3000
 - **API Docs**: http://localhost:3000/api-docs (Swagger UI)
 
@@ -174,60 +238,60 @@ npm run start:prod
 | Aiuto manovalanza | +3 | MANUAL_HELP | Supporto organizzativo |
 | Convocazione evento | +2 | EVENT_CALL | Partecipazione speciale |
 
-## 📁 Struttura Database
+## 📁 Struttura Database MySQL
 
 ### **Entità Principali**
 
 #### **Users** - Utenti/Associati
 ```sql
 CREATE TABLE users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT UNIQUE NOT NULL,
-    credits INTEGER DEFAULT 1000,
-    total_points INTEGER DEFAULT 0,
-    team_password TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(255) UNIQUE NOT NULL,
+    credits INT DEFAULT 1000,
+    total_points INT DEFAULT 0,
+    team_password VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 ```
 
 #### **Players** - Giocatori del Club
 ```sql
 CREATE TABLE players (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    base_value INTEGER DEFAULT 100,
-    current_points INTEGER DEFAULT 0,
-    yearly_points INTEGER DEFAULT 0,
-    position TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(255) NOT NULL,
+    base_value INT DEFAULT 100,
+    current_points INT DEFAULT 0,
+    yearly_points INT DEFAULT 0,
+    position VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 ```
 
 #### **Game Events** - Eventi/Giocate
 ```sql
 CREATE TABLE game_events (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(255) NOT NULL,
     date DATETIME NOT NULL,
     description TEXT,
-    active BOOLEAN DEFAULT 1,
-    closed BOOLEAN DEFAULT 0,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    active BOOLEAN DEFAULT TRUE,
+    closed BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 ```
 
 #### **Event Scores** - Punteggi per Evento
 ```sql
 CREATE TABLE event_scores (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    player_id INTEGER NOT NULL,
-    game_event_id INTEGER NOT NULL,
-    points INTEGER NOT NULL,
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    player_id INT NOT NULL,
+    game_event_id INT NOT NULL,
+    points INT NOT NULL,
     description TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (player_id) REFERENCES players(id),
-    FOREIGN KEY (game_event_id) REFERENCES game_events(id),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (player_id) REFERENCES players(id) ON DELETE CASCADE,
+    FOREIGN KEY (game_event_id) REFERENCES game_events(id) ON DELETE CASCADE,
     UNIQUE(player_id, game_event_id)
 );
 ```
@@ -235,14 +299,14 @@ CREATE TABLE event_scores (
 #### **User Players** - Possesso Giocatori
 ```sql
 CREATE TABLE user_players (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER NOT NULL,
-    player_id INTEGER NOT NULL,
-    selected_for_lineup BOOLEAN DEFAULT 0,
-    is_in_formation BOOLEAN DEFAULT 0,
-    purchase_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id),
-    FOREIGN KEY (player_id) REFERENCES players(id),
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    player_id INT NOT NULL,
+    selected_for_lineup BOOLEAN DEFAULT FALSE,
+    is_in_formation BOOLEAN DEFAULT FALSE,
+    purchase_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (player_id) REFERENCES players(id) ON DELETE CASCADE,
     UNIQUE(user_id, player_id)
 );
 ```
@@ -250,47 +314,47 @@ CREATE TABLE user_players (
 #### **User Event Scores** - Punteggi Utente per Evento
 ```sql
 CREATE TABLE user_event_scores (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER NOT NULL,
-    game_event_id INTEGER NOT NULL,
-    total_points INTEGER DEFAULT 0,
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    game_event_id INT NOT NULL,
+    total_points INT DEFAULT 0,
     formation_snapshot TEXT,
-    calculated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id),
-    FOREIGN KEY (game_event_id) REFERENCES game_events(id),
+    calculated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (game_event_id) REFERENCES game_events(id) ON DELETE CASCADE,
     UNIQUE(user_id, game_event_id)
 );
 ```
 
-### Creazione Database da Zero
+### Creazione Database MySQL da Zero
 
 Se il database viene eliminato, seguire questi passaggi:
 
 ```bash
-# 1. Rimuovi database esistente (se presente)
-rm -f data/fanta-softair.db
+# 1. Crea nuovo database MySQL
+mysql -u root -p -e "DROP DATABASE IF EXISTS fanta_softair; CREATE DATABASE fanta_softair CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
 
 # 2. Avvia l'app - TypeORM creerà le tabelle automaticamente
 npm run start:dev
 
 # 3. Il database viene creato con la struttura completa
-# Le entità TypeORM generano automaticamente le tabelle
+# Le entità TypeORM generano automaticamente le tabelle MySQL
 ```
 
-### Backup e Restore Database
+### Backup e Restore Database MySQL
 
 ```bash
 # Backup completo
-cp data/fanta-softair.db "data/backup-$(date +%Y%m%d_%H%M%S).db"
+mysqldump -u root -p fanta_softair > "backup-fanta-softair-$(date +%Y%m%d_%H%M%S).sql"
 
 # Restore da backup
-cp data/backup-20241201_143022.db data/fanta-softair.db
+mysql -u root -p fanta_softair < backup-fanta-softair-20241201_143022.sql
 
-# Export SQL (opzionale)
-sqlite3 data/fanta-softair.db .dump > backup.sql
+# Backup specifico tabelle
+mysqldump -u root -p fanta_softair users players game_events > backup-core.sql
 
-# Import SQL
-sqlite3 data/fanta-softair.db < backup.sql
+# Restore selectivo
+mysql -u root -p fanta_softair < backup-core.sql
 ```
 
 ## 🌐 API Endpoints
@@ -406,13 +470,13 @@ pm2 startup
 pm2 save
 ```
 
-### Docker Setup
+### Docker Setup (con MySQL)
 
 ```dockerfile
 FROM node:18-alpine
 
-# Installa dipendenze SQLite
-RUN apk add --no-cache python3 make g++
+# Installa dipendenze MySQL client
+RUN apk add --no-cache mysql-client
 
 WORKDIR /app
 
@@ -426,9 +490,6 @@ COPY . .
 # Build applicazione
 RUN npm run build
 
-# Crea cartella database
-RUN mkdir -p data
-
 EXPOSE 3000
 
 # Health check
@@ -436,6 +497,41 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD curl -f http://localhost:3000/api/users || exit 1
 
 CMD ["npm", "run", "start:prod"]
+```
+
+#### Docker Compose con MySQL
+
+```yaml
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_USERNAME=fanta_user
+      - DB_PASSWORD=fanta_password
+      - DB_NAME=fanta_softair
+    depends_on:
+      - mysql
+
+  mysql:
+    image: mysql:8.0
+    environment:
+      - MYSQL_ROOT_PASSWORD=root_password
+      - MYSQL_DATABASE=fanta_softair
+      - MYSQL_USER=fanta_user
+      - MYSQL_PASSWORD=fanta_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+volumes:
+  mysql_data:
 ```
 
 ## 🔐 Sicurezza
@@ -466,13 +562,16 @@ Il sistema è predisposto per diventare una Progressive Web App:
 
 ## 🐛 Troubleshooting
 
-### Database non si crea
+### Problemi connessione MySQL
 ```bash
-# Verifica permessi
-chmod 755 data/
-# Ricrea database
-rm -f data/fanta-softair.db
-npm run start:dev
+# Verifica servizio MySQL
+sudo systemctl status mysql
+
+# Test connessione
+mysql -u root -p -e "SELECT 1;"
+
+# Verifica database
+mysql -u root -p -e "SHOW DATABASES;" | grep fanta_softair
 ```
 
 ### Porta 3000 occupata
@@ -485,8 +584,8 @@ kill -9 [PID]
 
 ### Reset completo sistema
 ```bash
-# Elimina database e rebuild
-rm -f data/fanta-softair.db
+# Ricrea database MySQL e rebuild
+mysql -u root -p -e "DROP DATABASE IF EXISTS fanta_softair; CREATE DATABASE fanta_softair CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
 rm -rf dist/
 npm run build
 npm run start:dev
@@ -506,7 +605,7 @@ npm run start:dev
 
 Per problemi tecnici, miglioramenti o domande:
 - Controlla i logs: `npm run start:dev`
-- Verifica database: `sqlite3 data/fanta-softair.db ".tables"`
+- Verifica database: `mysql -u root -p -e "USE fanta_softair; SHOW TABLES;"`
 - API Documentation: http://localhost:3000/api-docs
 
 ---
@@ -520,7 +619,7 @@ git clone https://github.com/xMikee/FantaSoftair.git && cd FantaSoftair && npm i
 
 **Porta**: http://localhost:3000
 **Admin**: Password di default (configurabile)
-**Database**: Creato automaticamente in `data/fanta-softair.db`
+**Database**: MySQL `fanta_softair` su localhost:3306
 
 ---
 

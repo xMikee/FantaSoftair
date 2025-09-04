@@ -11,10 +11,14 @@ import { UserPlayer } from './entities/user-player.entity';
 @Module({
   imports: [
     TypeOrmModule.forRoot({
-      type: 'sqlite',
-      database: './data/fanta-softair.db',
+      type: 'mysql',
+      host: process.env.DB_HOST || 'localhost',
+      port: parseInt(process.env.DB_PORT) || 3306,
+      username: process.env.DB_USERNAME || 'root',
+      password: process.env.DB_PASSWORD || '',
+      database: process.env.DB_NAME || 'fanta_softair',
       entities: [User, Player, Event, GameEvent, EventScore, UserEventScore, UserPlayer],
-      synchronize: false, // Keep false to use existing database
+      synchronize: false,
       logging: false,
     }),
     TypeOrmModule.forFeature([User, Player, Event, GameEvent, EventScore, UserEventScore, UserPlayer]),
