@@ -382,16 +382,19 @@ async function updateAdminMarketList() {
         }
 
         availablePlayers.forEach(player => {
-            const playerDiv = document.createElement('div');
-            playerDiv.className = 'market-player';
-            playerDiv.innerHTML = `
+            if(player.name !== 'ADMIN'){
+                const playerDiv = document.createElement('div');
+                playerDiv.className = 'market-player';
+                playerDiv.innerHTML = `
                 <div class="market-player-info">
                     <div class="market-player-name">${player.name}</div>
                     <div class="market-player-value">Valore: ${player.baseValue} crediti | Punti: ${player.currentPoints}</div>
                 </div>
                 <button class="btn btn-success" onclick="adminBuyPlayer(${player.id}, ${player.baseValue})">Acquista per Squadra</button>
             `;
-            marketList.appendChild(playerDiv);
+                marketList.appendChild(playerDiv);
+            }
+
         });
     } catch (error) {
         console.error('Errore aggiornamento mercato admin:', error);

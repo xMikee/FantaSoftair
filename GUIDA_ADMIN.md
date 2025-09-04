@@ -27,14 +27,14 @@ Il sistema FantaSoftair A-Team è una piattaforma fantasy football adattata al g
 
 ### Assegnazione Giocatori alle Squadre
 1. **Seleziona Squadra**: Scegli quale squadra gestire dal dropdown
-2. **Visualizza Crediti**: Ogni squadra ha un budget di 1000 crediti iniziali
+2. **Visualizza Crediti**: Ogni squadra ha un budget di 80 crediti iniziali
 3. **Giocatori Disponibili**: Vedi tutti i giocatori non ancora assegnati
 4. **Acquista Giocatori**: Clicca su un giocatore per aggiungerlo alla squadra
 5. **Vendi Giocatori**: Rimuovi giocatori dalla squadra per liberare crediti
 
 ### Limitazioni del Mercato
 - Ogni squadra può avere massimo 11 giocatori
-- Ogni giocatore ha un valore base di 100 crediti
+- Ogni giocatore ha un valore in crediti
 - Il sistema controlla automaticamente i crediti disponibili
 
 ## 🎯 GESTIONE PUNTEGGI
