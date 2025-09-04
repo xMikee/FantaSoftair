@@ -8,6 +8,8 @@ async function loadComponent(componentName, containerId) {
         // Set active nav button based on current page
         if (componentName === 'header') {
             setActiveNavButton();
+            // Initialize mobile menu after header is loaded
+            initializeMobileMenu();
         }
     } catch (error) {
         console.error(`Errore nel caricamento del componente ${componentName}:`, error);
@@ -74,7 +76,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
         
         hideLoading();
-        showAlert('Applicazione caricata con successo!', 'success');
+        //showAlert('Applicazione caricata con successo!', 'success');
     } catch (error) {
         console.error('Errore nell\'inizializzazione:', error);
         showAlert(`Errore nel caricamento dell'applicazione: ${error.message}`, 'error');
@@ -380,16 +382,19 @@ async function updateAdminMarketList() {
         }
 
         availablePlayers.forEach(player => {
-            const playerDiv = document.createElement('div');
-            playerDiv.className = 'market-player';
-            playerDiv.innerHTML = `
+            if(player.name !== 'ADMIN'){
+                const playerDiv = document.createElement('div');
+                playerDiv.className = 'market-player';
+                playerDiv.innerHTML = `
                 <div class="market-player-info">
                     <div class="market-player-name">${player.name}</div>
                     <div class="market-player-value">Valore: ${player.baseValue} crediti | Punti: ${player.currentPoints}</div>
                 </div>
                 <button class="btn btn-success" onclick="adminBuyPlayer(${player.id}, ${player.baseValue})">Acquista per Squadra</button>
             `;
-            marketList.appendChild(playerDiv);
+                marketList.appendChild(playerDiv);
+            }
+
         });
     } catch (error) {
         console.error('Errore aggiornamento mercato admin:', error);
@@ -1398,15 +1403,19 @@ async function showAllPasswords() {
 }
 
 // Hamburger Menu Functionality
-document.addEventListener('DOMContentLoaded', function() {
+function initializeMobileMenu() {
     const hamburger = document.getElementById('hamburger');
     const navMenu = document.getElementById('nav-menu');
     const navOverlay = document.getElementById('nav-overlay');
 
     if (hamburger && navMenu && navOverlay) {
+        // Remove any existing event listeners to avoid duplicates
+        hamburger.replaceWith(hamburger.cloneNode(true));
+        const newHamburger = document.getElementById('hamburger');
+        
         // Toggle mobile menu
         function toggleMobileMenu() {
-            hamburger.classList.toggle('active');
+            newHamburger.classList.toggle('active');
             navMenu.classList.toggle('active');
             navOverlay.classList.toggle('active');
             
@@ -1420,14 +1429,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Close mobile menu
         function closeMobileMenu() {
-            hamburger.classList.remove('active');
+            newHamburger.classList.remove('active');
             navMenu.classList.remove('active');
             navOverlay.classList.remove('active');
             document.body.style.overflow = '';
         }
 
         // Event listeners
-        hamburger.addEventListener('click', toggleMobileMenu);
+        newHamburger.addEventListener('click', toggleMobileMenu);
         navOverlay.addEventListener('click', closeMobileMenu);
 
         // Close menu when clicking on navigation links (mobile)
@@ -1450,7 +1459,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-});
+}
 
 // Game Events Management Functions
 let gameEvents = [];
@@ -1773,7 +1782,7 @@ async function loadGameEventsForScoring() {
 
             if (events.length === 0) {
                 eventSelect.innerHTML = '<option value="">Nessun evento disponibile per il punteggio</option>';
-                showAlert('Non ci sono eventi aperti disponibili. Crea un nuovo evento per assegnare punteggi.', 'warning');
+                showAlert('Non ci sono eventi aperti disponibili. Crea un nuovo evento per assegnare punteggi.', 'info');
             }
         }
     } catch (error) {
@@ -1808,7 +1817,7 @@ async function loadGameEventsForDayClosure() {
 
                 if (events.length === 0) {
                     eventSelect.innerHTML = '<option value="">Nessun evento disponibile per la chiusura</option>';
-                    showAlert('Non ci sono eventi aperti disponibili per la chiusura. Tutti gli eventi sono già stati chiusi o non esistono eventi.', 'info');
+                    //showAlert('Non ci sono eventi aperti disponibili per la chiusura. Tutti gli eventi sono già stati chiusi o non esistono eventi.', 'info');
                 }
             }
         }
@@ -1831,7 +1840,7 @@ async function closeCurrentEventWithDay() {
         }
     }
     
-    if (!confirm(`⚠️ ATTENZIONE!\n\nStai per chiudere la giornata: ${eventName}\n\nQuesto:\n- Trasferirà tutti i currentPoints → yearlyPoints\n- Azzererà tutti i currentPoints\n- Le squadre inizieranno con 0 punti\n- Verrà registrato nello storico\n\nSei sicuro di voler continuare?`)) {
+    if (!confirm(`⚠️ ATTENZIONE!\n\nStai per chiudere la giornata: ${eventName}\n\nQuesto:\n- Le squadre inizieranno con 0 punti\n- Verrà registrato nello storico\n\nSei sicuro di voler continuare?`)) {
         return;
     }
     
@@ -2006,7 +2015,7 @@ async function loadUnifiedRankings() {
 
 // Chiude la giornata corrente (Sistema Fantasy Football)
 async function closeCurrentEvent() {
-    if (!confirm('⚠️ ATTENZIONE!\n\nStai per chiudere la giornata corrente.\n\nQuesto:\n- Trasferirà tutti i currentPoints → yearlyPoints\n- Azzererà tutti i currentPoints\n- Le squadre inizieranno con 0 punti\n\nSei sicuro di voler continuare?')) {
+    if (!confirm('⚠️ ATTENZIONE!\n\nStai per chiudere la giornata corrente.\n\nQuesto:\n- Azzererà tutti i currentPoints\n- Le squadre inizieranno con 0 punti\n\nSei sicuro di voler continuare?')) {
         return;
     }
     

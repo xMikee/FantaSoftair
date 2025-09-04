@@ -855,3 +855,32 @@ body {
         padding: 20px;
     }
 }
+@media (max-width: 480px) {
+    .market-player{
+        display: block;
+        text-align: left;
+    }
+    #admin-team-list, #admin-market-list{
+        display: block;
+    }
+    .grid{
+        display: block;
+    }
+    .ranking-position{
+        font-size: 16px;
+        min-width: 20px;
+    }
+    .ranking-name {
+        margin-left: 0px;
+        font-size: 13px;
+    }
+    .ranking-points {
+        font-size: 12px;
+    }
+    .ranking-med, .ranking-medal {
+        max-width: 35px;
+    }
+    .ranking-item{
+        padding: 6px 8px;
+    }
+}
