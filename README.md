@@ -4,7 +4,7 @@ Sistema avanzato di gestione fantasy per il club A-Team con mercato giocatori, p
 
 ## 🔄 Aggiornamenti Recenti
 
-### **Migrazione Database - Settembre 2024**
+### **Migrazione Database - Settembre 2025**
 - **Da SQLite a MySQL**: Sistema migrato a database MySQL per performance superiori
 - **Reset completo database**: Sistema pulito per nuova stagione
 - **Struttura ottimizzata**: Schema database MySQL professionale
