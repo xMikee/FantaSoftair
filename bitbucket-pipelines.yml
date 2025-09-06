@@ -5,6 +5,9 @@ definitions:
         image: node:22-slim
         oidc: false
         script:
+
+          - '[[ $BITBUCKET_BRANCH = "main" ]] && DEPLOYMENT_NAME="production" || DEPLOYMENT_NAME="staging"'
+          
           # rsync
           - pipe: atlassian/rsync-deploy:0.13.0
             variables:
