@@ -8,6 +8,7 @@ definitions:
 
           - '[[ $BITBUCKET_BRANCH = "main" ]] && DEPLOYMENT_NAME="production" || DEPLOYMENT_NAME="staging"'
           - echo $DEPLOYMENT_NAME
+          - echo $DEPLOY_PATH
 
           # rsync
           - pipe: atlassian/rsync-deploy:0.13.0
