@@ -8,7 +8,7 @@ definitions:
 
           - '[[ $BITBUCKET_BRANCH = "main" ]] && DEPLOYMENT_NAME="production" || DEPLOYMENT_NAME="staging"'
           - echo $DEPLOYMENT_NAME
-          - echo $DEPLOY_PATH
+          - echo ${DEPLOY_PATH}
 
           # rsync
           - pipe: atlassian/rsync-deploy:0.13.0
@@ -16,7 +16,7 @@ definitions:
               USER: $SSH_USER
               SERVER: $SERVER_HOST
               SSH_KEY: $SSH_PRIVATE_KEY
-              REMOTE_PATH: $DEPLOY_PATH
+              REMOTE_PATH: ${DEPLOY_PATH}
               LOCAL_PATH: $BITBUCKET_CLONE_DIR
               EXTRA_ARGS: '--exclude-from=.deployignore'
           
@@ -27,7 +27,7 @@ definitions:
               SERVER: $SERVER_HOST
               SSH_KEY: $SSH_PRIVATE_KEY
               COMMAND: |
-                cat > $DEPLOY_PATH/.env << 'EOF'
+                cat > ${DEPLOY_PATH}/.env << 'EOF'
                 # Database Configuration
                 DB_HOST=${DB_HOST}
                 DB_PORT=${DB_PORT}
@@ -39,7 +39,7 @@ definitions:
                 NODE_ENV=${NODE_ENV}
                 EOF
                 
-                cd $DEPLOY_PATH
+                cd ${DEPLOY_PATH}
                 npm ci
                 npm run build
                 npm run migration:run
