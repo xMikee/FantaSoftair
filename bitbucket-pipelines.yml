@@ -51,4 +51,8 @@ pipelines:
     #main:
       #- step: *deploy
     staging:
-      - step: *deploy
+      - stage:
+          name: Deploy to staging
+          deployment: staging
+          steps:
+            - step: *deploy
