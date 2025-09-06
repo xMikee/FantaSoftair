@@ -3,60 +3,43 @@ definitions:
     - step: &deploy
         name: Deploy to Hetzner Server
         image: node:22-slim
-        oidc: true
+        oidc: false
         script:
-          - apt-get update && apt-get install -y openssh-client rsync
+          # rsync
+          - pipe: atlassian/rsync-deploy:0.13.0
+            variables:
+              SSH_USER: $SSH_USER
+              SERVER: $SERVER_HOST
+              SSH_KEY: $SSH_PRIVATE_KEY
+              REMOTE_PATH: $DEPLOY_PATH
+              LOCAL_PATH: $BITBUCKET_CLONE_DIR
+              EXTRA_ARGS: '--exclude-from=.deployignore'
           
-          # configura ssh
-          - mkdir -p ~/.ssh
-          - chmod 700 ~/.ssh
-          - ssh-keyscan -H $SERVER_HOST >> ~/.ssh/known_hosts
-          - (umask 077 ; echo $SSH_PRIVATE_KEY | base64 --decode > ~/.ssh/id_ed25519)
-          - chmod 600 ~/.ssh/id_ed25519
-          
-          - |
-            cat > .env << EOF
-            # Database Configuration
-            DB_HOST=${DB_HOST}
-            DB_PORT=${DB_PORT}
-            DB_USERNAME=${DB_USERNAME}
-            DB_PASSWORD=${DB_PASSWORD}
-            DB_NAME=${DB_NAME}
-            
-            # Application Configuration
-            NODE_ENV=${NODE_ENV}
-            EOF
-          
-          # dipendenze e build
-          - npm ci
-          - npm run build
-          
-          # crea directory logs
-          - mkdir -p logs
-          
-          # rsync al server
-          - |
-            rsync -avz --delete \
-              --exclude='.git' \
-              --exclude='node_modules' \
-              --exclude='src' \
-              --exclude='.env*' \
-              --exclude='logs' \
-              --exclude='.pm2' \
-              --exclude='*.log' \
-              $BITBUCKET_CLONE_DIR/ $SSH_USER@$SERVER_HOST:$DEPLOY_PATH/
-          
-          - scp .env $SSH_USER@$SERVER_HOST:$DEPLOY_PATH/.env
-          
-          # esegui comandi sul server
-          - |
-            ssh $SSH_USER@$SERVER_HOST << 'EOF'
-              cd $DEPLOY_PATH
-              npm ci --only=production
-              npm run migration:run
-              npm run pm2:restart || npm run pm2:start
-              npm run pm2:status
-            EOF
+          # ssh
+          - pipe: atlassian/ssh-run:0.8.1
+            variables:
+              SSH_USER: $SSH_USER
+              SERVER: $SERVER_HOST
+              SSH_KEY: $SSH_PRIVATE_KEY
+              COMMAND: |
+                cat > $DEPLOY_PATH/.env << 'EOF'
+                # Database Configuration
+                DB_HOST=${DB_HOST}
+                DB_PORT=${DB_PORT}
+                DB_USERNAME=${DB_USERNAME}
+                DB_PASSWORD=${DB_PASSWORD}
+                DB_NAME=${DB_NAME}
+                
+                # Application Configuration
+                NODE_ENV=${NODE_ENV}
+                EOF
+                
+                cd $DEPLOY_PATH
+                npm ci
+                npm run build
+                npm run migration:run
+                npm run pm2:restart || npm run pm2:start
+                pm2 status
 
 pipelines:
   branches:
