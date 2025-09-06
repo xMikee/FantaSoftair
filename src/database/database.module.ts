@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Player } from './entities/player.entity';
@@ -10,16 +11,22 @@ import { UserPlayer } from './entities/user-player.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot({
-      type: 'mysql',
-      host: process.env.DB_HOST || 'localhost',
-      port: parseInt(process.env.DB_PORT) || 3306,
-      username: process.env.DB_USERNAME || 'root',
-      password: process.env.DB_PASSWORD || '',
-      database: process.env.DB_NAME || 'fanta_softair',
-      entities: [User, Player, Event, GameEvent, EventScore, UserEventScore, UserPlayer],
-      synchronize: false,
-      logging: false,
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => ({
+        type: 'mysql',
+        host: configService.get<string>('DB_HOST', 'localhost'),
+        port: configService.get<number>('DB_PORT', 3306),
+        username: configService.get<string>('DB_USERNAME', 'root'),
+        password: configService.get<string>('DB_PASSWORD', ''),
+        database: configService.get<string>('DB_NAME', 'fanta_softair'),
+        entities: [User, Player, Event, GameEvent, EventScore, UserEventScore, UserPlayer],
+        migrations: ['dist/database/migrations/*.js'],
+        migrationsTableName: 'typeorm_migrations',
+        synchronize: false,
+        logging: configService.get<string>('NODE_ENV') === 'development',
+      }),
+      inject: [ConfigService],
     }),
     TypeOrmModule.forFeature([User, Player, Event, GameEvent, EventScore, UserEventScore, UserPlayer]),
   ],

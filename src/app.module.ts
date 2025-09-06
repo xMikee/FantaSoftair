@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { DatabaseModule } from './database/database.module';
@@ -15,6 +16,11 @@ import { PublicApiController } from './public-api.controller';
 
 @Module({
   imports: [
+    // Load environment variables from .env file
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.env',
+    }),
     // Serve static files from public directory
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'public'),

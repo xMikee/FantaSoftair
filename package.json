@@ -3,12 +3,29 @@
   "version": "1.0.0",
   "description": "Sistema Fantasy Softair per il club",
   "main": "dist/main.js",
+  "engines": {
+    "node": ">=22.0.0",
+    "npm": ">=10.0.0"
+  },
   "scripts": {
     "build": "nest build",
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
+    "pm2:start": "pm2 start ecosystem.config.js",
+    "pm2:stop": "pm2 stop fanta-softair-app",
+    "pm2:restart": "pm2 restart fanta-softair-app",
+    "pm2:delete": "pm2 delete fanta-softair-app",
+    "pm2:logs": "pm2 logs fanta-softair-app",
+    "pm2:status": "pm2 status",
+    "deploy": "npm run build && pm2 restart fanta-softair-app",
+    "typeorm": "typeorm-ts-node-commonjs",
+    "migration:generate": "npm run typeorm -- migration:generate -d src/database/data-source.ts",
+    "migration:run": "npm run typeorm -- migration:run -d src/database/data-source.ts",
+    "migration:revert": "npm run typeorm -- migration:revert -d src/database/data-source.ts",
+    "migration:create": "npm run typeorm -- migration:create",
+    "schema:sync": "npm run typeorm -- schema:sync -d src/database/data-source.ts",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
@@ -25,6 +42,7 @@
   "dependencies": {
     "@fastify/static": "^8.2.0",
     "@nestjs/common": "^11.1.6",
+    "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.1.6",
     "@nestjs/jwt": "^11.0.0",
     "@nestjs/passport": "^11.0.5",
@@ -39,8 +57,7 @@
     "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",
     "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.2",
-    "typeorm": "^0.3.26"
+    "rxjs": "^7.8.2"
   },
   "devDependencies": {
     "@nestjs/cli": "^11.0.10",
@@ -51,6 +68,7 @@
     "@types/passport-local": "^1.0.38",
     "jest": "^30.1.1",
     "ts-node": "^10.9.2",
+    "typeorm": "^0.3.26",
     "typescript": "^5.9.2"
   },
   "repository": {
