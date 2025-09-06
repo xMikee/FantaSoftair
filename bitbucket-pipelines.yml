@@ -44,7 +44,7 @@ definitions:
               --exclude='logs' \
               --exclude='.pm2' \
               --exclude='*.log' \
-              ./ $SSH_USER@$SERVER_HOST:$DEPLOY_PATH/
+              $BITBUCKET_CLONE_DIR/ $SSH_USER@$SERVER_HOST:$DEPLOY_PATH/
           
           - scp .env $SSH_USER@$SERVER_HOST:$DEPLOY_PATH/.env
           
