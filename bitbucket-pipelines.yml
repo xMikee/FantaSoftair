@@ -8,7 +8,7 @@ definitions:
           # rsync
           - pipe: atlassian/rsync-deploy:0.13.0
             variables:
-              SSH_USER: $SSH_USER
+              USER: $SSH_USER
               SERVER: $SERVER_HOST
               SSH_KEY: $SSH_PRIVATE_KEY
               REMOTE_PATH: $DEPLOY_PATH
