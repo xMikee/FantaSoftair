@@ -21,8 +21,11 @@ definitions:
               LOCAL_PATH: $BITBUCKET_CLONE_DIR/*
               DEBUG: 'true'
               EXTRA_ARGS: 
-                - "--exclude-from=.deployignore"
                 - "--verbose"
+                - "--delete"
+                - "--perms"
+                - "--group=www-data"
+                - "--chown=ateam_bitbucket_pipeline:www-data"
           
           # ssh
           - pipe: atlassian/ssh-run:0.8.1
