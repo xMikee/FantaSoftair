@@ -18,7 +18,7 @@ definitions:
               SERVER: $SERVER_HOST
               SSH_KEY: $SSH_PRIVATE_KEY
               REMOTE_PATH: ${DEPLOY_PATH}
-              LOCAL_PATH: $BITBUCKET_CLONE_DIR/build
+              LOCAL_PATH: $BITBUCKET_CLONE_DIR/*
               DEBUG: 'true'
               EXTRA_ARGS: 
                 - "--exclude-from=.deployignore"
