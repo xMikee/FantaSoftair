@@ -24,7 +24,6 @@ definitions:
                 - "--verbose"
                 - "--delete"
                 - "--perms"
-                - "--group=www-data"
                 - "--chown=ateam_bitbucket_pipeline:www-data"
           
           # ssh
