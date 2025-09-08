@@ -9,6 +9,7 @@ definitions:
           - '[[ $BITBUCKET_BRANCH = "main" ]] && DEPLOYMENT_NAME="production" || DEPLOYMENT_NAME="staging"'
           - echo $DEPLOYMENT_NAME
           - echo ${DEPLOY_PATH}
+          - echo $BITBUCKET_CLONE_DIR
 
           # rsync
           - pipe: atlassian/rsync-deploy:0.13.0
@@ -18,7 +19,10 @@ definitions:
               SSH_KEY: $SSH_PRIVATE_KEY
               REMOTE_PATH: ${DEPLOY_PATH}
               LOCAL_PATH: $BITBUCKET_CLONE_DIR
-              EXTRA_ARGS: '--exclude-from=.deployignore --delete --verbose'
+              DEBUG: 'true'
+              EXTRA_ARGS: 
+                #- "--exclude-from=.deployignore"
+                - "--verbose"
           
           # ssh
           - pipe: atlassian/ssh-run:0.8.1
