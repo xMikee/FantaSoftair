@@ -21,11 +21,11 @@ export class PlayersService {
 
         console.log(`Updating total points for user ${ownerId}...`);
 
-        // Calcolo dei punti totali del giocatore usando la nuova struttura
+        // Calcolo dei punti totali ACCUMULATI del giocatore (currentPoints + yearlyPoints)
         const result = await this.userPlayersRepository
             .createQueryBuilder('userPlayer')
             .leftJoin('userPlayer.player', 'player')
-            .select('COALESCE(SUM(player.currentPoints), 0)', 'totalPoints')
+            .select('COALESCE(SUM(player.currentPoints + player.yearlyPoints), 0)', 'totalPoints')
             .where('userPlayer.userId = :ownerId', { ownerId })
             .andWhere('userPlayer.selectedForLineup = :selected', { selected: true })
             .getRawOne<{ totalPoints: string }>();
@@ -105,9 +105,16 @@ export class PlayersService {
       throw new Error('Player not found');
     }
 
-    // Aggiorna il giocatore master
+    // Salva sempre i punti richiesti, senza limitazioni
     await this.playersRepository.increment({ id }, 'currentPoints', points);
-    console.log(`Updated player ${player.name} by ${points} points`);
+    
+    const totalPointsAfterUpdate = player.currentPoints + points + player.yearlyPoints;
+    console.log(`Updated player ${player.name} by ${points} points (total: ${totalPointsAfterUpdate})`);
+    
+    // Log di warning se il totale va sotto zero, ma salva comunque
+    if (totalPointsAfterUpdate < 0) {
+      console.log(`Warning: Player ${player.name} now has negative total points: ${totalPointsAfterUpdate}`);
+    }
   }
 
   async resetOwnership(): Promise<void> {

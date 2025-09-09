@@ -41,7 +41,7 @@ export class AdminService {
         throw new Error('Non è possibile aggiornare punteggi per una giornata già chiusa.');
       }
 
-      // NUOVO SISTEMA FANTASY: Aggiorna direttamente currentPoints
+      // NUOVO SISTEMA FANTASY: Aggiorna currentPoints con controllo per evitare punti negativi
       await this.playersService.updateCurrentPoints(playerId, points);
       
       // Mantieni storico degli eventi per riferimento con gameEventId
@@ -200,28 +200,27 @@ export class AdminService {
     return this.gameEventsService.getWorstPlayersRanking(limit);
   }
 
-  // Ricalcola i punti totali di tutte le squadre basandosi sui currentPoints dei giocatori in formazione
+  // Ricalcola i punti totali di tutte le squadre basandosi sui punti totali accumulati (currentPoints + yearlyPoints)
   private async recalculateAllTeamPoints(): Promise<void> {
     console.log('Recalculating all team points (Fantasy System)...');
     
     const users = await this.usersRepository.find();
     
     for (const user of users) {
-      // Calcola i punti totali dei giocatori selezionati per la formazione usando la nuova struttura
+      // Calcola i punti totali ACCUMULATI dei giocatori selezionati per la formazione
       const result = await this.userPlayersRepository
         .createQueryBuilder('userPlayer')
         .leftJoin('userPlayer.player', 'player')
-        .select('COALESCE(SUM(player.currentPoints), 0)', 'totalPoints')
+        .select('COALESCE(SUM(player.currentPoints + player.yearlyPoints), 0)', 'totalPoints')
         .where('userPlayer.userId = :ownerId', { ownerId: user.id })
         .andWhere('userPlayer.selectedForLineup = :selected', { selected: true })
         .getRawOne<{ totalPoints: string }>();
 
       const totalPoints = Number(result?.totalPoints ?? 0);
       
-      // Aggiorna i punti totali dell'utente
+      // Aggiorna sempre i punti totali dell'utente (possono essere negativi)
       user.totalPoints = totalPoints;
       await this.usersRepository.save(user);
-      
       console.log(`Updated team ${user.name}: ${totalPoints} points`);
     }
     

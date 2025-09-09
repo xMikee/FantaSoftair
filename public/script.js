@@ -364,7 +364,7 @@ function updateClassifica() {
         rankingItem.innerHTML = `    
             <div class="ranking-position">${medalHtml}</div>
             <div class="ranking-name">${user.name}</div>
-            <div class="ranking-points">${user.total_points} pts (${user.lineup_size || 0}/8 in campo)</div>
+            <div class="ranking-points">${user.total_points} pts </div>
         `;
         rankingList.appendChild(rankingItem);
     });
