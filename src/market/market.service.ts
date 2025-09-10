@@ -162,4 +162,8 @@ export class MarketService {
   async getWorstPlayersRanking(limit: number = 10) {
     return this.gameEventsService.getWorstPlayersRanking(limit);
   }
+
+  async getAllPlayersRanking() {
+    return this.gameEventsService.getAllPlayersRanking();
+  }
 }

@@ -66,4 +66,11 @@ export class MarketController {
   async getWorstPlayers() {
     return this.marketService.getWorstPlayersRanking();
   }
+
+  @Get('all-players-ranking')
+  @ApiOperation({ summary: 'Get complete players ranking with total points (current + yearly)' })
+  @ApiResponse({ status: 200, description: 'Complete players ranking retrieved successfully' })
+  async getAllPlayersRanking() {
+    return this.marketService.getAllPlayersRanking();
+  }
 }

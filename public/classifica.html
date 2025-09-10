@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Classifica - Fanta Softair A-Team</title>
+    <title>Classifica Squadre - Fanta Softair A-Team</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -20,7 +20,7 @@
 
     <!-- Sezione Classifica -->
     <div id="classifica" class="section active">
-        <h2>🏆 Classifica Softgunners</h2>
+        <h2>🏆 Classifica Squadre A-Team</h2>
         
         <!-- Countdown per il prossimo evento -->
         <div id="countdown-container" class="countdown-container" style="display: none;">
@@ -33,23 +33,7 @@
         
         <div id="ranking-list"></div>
 
-        <!-- Classifiche Giocatori dell'Anno -->
-        <div class="grid grid-2" style="margin-top: 30px;">
-            <div class="card">
-                <h3>🏆 Migliori Giocatori dell'Anno</h3>
-                <p style="color: #718096; font-size: 0.9em; margin-bottom: 15px;">
-                    Basato sui punti accumulati nell'anno
-                </p>
-                <div id="ranking-best-player"></div>
-            </div>
-            <div class="card">
-                <h3>💀 Peggiori Giocatori dell'Anno</h3>
-                <p style="color: #718096; font-size: 0.9em; margin-bottom: 15px;">
-                    Giocatori con più punti negativi nell'anno
-                </p>
-                <div id="ranking-loser-player"></div>
-            </div>
-        </div>
+
         <!-- Footer Component -->
         <div id="footer-container"></div>
     </div>
@@ -69,8 +53,8 @@
             updateUI();
             
             // Carica le classifiche giocatori
-            await loadBestPlayersRanking();
-            await loadWorstPlayersRanking();
+            //await loadBestPlayersRanking();
+            //await loadWorstPlayersRanking();
             
             hideLoading();
             showAlert('Classifica caricata con successo!', 'success');

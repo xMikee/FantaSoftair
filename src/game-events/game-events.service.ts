@@ -233,4 +233,45 @@ export class GameEventsService {
       ownerName: ''
     }));
   }
+
+  /**
+   * Ottiene la classifica completa di tutti i giocatori ordinati per punteggio totale
+   */
+  async getAllPlayersRanking(): Promise<Array<{
+    id: number;
+    name: string;
+    position: string;
+    currentPoints: number;
+    yearlyPoints: number;
+    totalPoints: number;
+    ownerName?: string;
+  }>> {
+    const players = await this.playersRepository
+      .createQueryBuilder('player')
+      .leftJoin('player.userPlayers', 'userPlayer')
+      .leftJoin('userPlayer.user', 'owner')
+      .select([
+        'player.id',
+        'player.name',
+        'player.position',
+        'player.currentPoints',
+        'player.yearlyPoints',
+        'owner.name'
+      ])
+      .where('player.name != :adminName', { adminName: 'ADMIN' })
+      .orderBy('(player.currentPoints + player.yearlyPoints)', 'DESC')
+      .getMany();
+
+    return players.map(player => ({
+      id: player.id,
+      name: player.name,
+      position: player.position || 'N/A',
+      currentPoints: player.currentPoints || 0,
+      yearlyPoints: player.yearlyPoints || 0,
+      totalPoints: (player.currentPoints || 0) + (player.yearlyPoints || 0),
+      ownerName: player.userPlayers && player.userPlayers.length > 0 && player.userPlayers[0].user 
+        ? player.userPlayers[0].user.name 
+        : 'Svincolato'
+    }));
+  }
 }
