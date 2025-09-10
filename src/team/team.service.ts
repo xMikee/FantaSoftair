@@ -4,6 +4,7 @@ import { Repository, In } from 'typeorm';
 import { User } from '../database/entities/user.entity';
 import { Player } from '../database/entities/player.entity';
 import { UserPlayer } from '../database/entities/user-player.entity';
+import { GameEventsService } from '../game-events/game-events.service';
 import * as crypto from 'crypto';
 
 @Injectable()
@@ -15,6 +16,7 @@ export class TeamService {
     private playersRepository: Repository<Player>,
     @InjectRepository(UserPlayer)
     private userPlayersRepository: Repository<UserPlayer>,
+    private gameEventsService: GameEventsService,
   ) {}
 
   async loginToTeam(teamName: string, password: string) {
@@ -85,6 +87,13 @@ export class TeamService {
   }
 
   async updateFormation(teamId: number, playerIds: number[]) {
+    // Controlla se è possibile modificare la formazione
+    const formationCheck = await this.gameEventsService.canModifyFormation();
+    
+    if (!formationCheck.canModify) {
+      throw new BadRequestException(`Impossibile modificare la formazione: ${formationCheck.reason}`);
+    }
+
     if (playerIds.length !== 8) {
       throw new BadRequestException('La formazione deve contenere esattamente 8 giocatori');
     }
@@ -132,7 +141,8 @@ export class TeamService {
         id: userPlayer.player.id,
         name: userPlayer.player.name,
         position: userPlayer.player.position
-      }))
+      })),
+      formationStatus: formationCheck
     };
   }
 
@@ -169,6 +179,10 @@ export class TeamService {
     await this.usersRepository.save(user);
     
     return newPassword;
+  }
+
+  async getFormationStatus() {
+    return this.gameEventsService.canModifyFormation();
   }
 
   private generateRandomPassword(): string {

@@ -62,4 +62,11 @@ export class TeamController {
     const newPassword = await this.teamService.resetTeamPassword(teamName);
     return { teamName, newPassword, message: 'Password resettata con successo' };
   }
+
+  @Get('formation/status')
+  @ApiOperation({ summary: 'Check if formation can be modified' })
+  @ApiResponse({ status: 200, description: 'Formation status retrieved' })
+  async getFormationStatus() {
+    return this.teamService.getFormationStatus();
+  }
 }

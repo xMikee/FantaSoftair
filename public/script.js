@@ -1491,7 +1491,7 @@ function updateGameEventsList() {
     let html = '';
 
     if (upcoming.length > 0) {
-        html += '<div class="events-section"><h5 style="color: #28a745;">🔮 Eventi Futuri</h5>';
+        html += '<div class="events-section"><h5 style="color: #28a745;">Eventi Futuri</h5>';
         upcoming.forEach(event => {
             html += createEventHTML(event, true);
         });

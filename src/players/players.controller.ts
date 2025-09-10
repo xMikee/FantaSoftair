@@ -2,11 +2,15 @@ import { Controller, Get, Query, Post, Body, BadRequestException, Param, UseGuar
 import { PlayersService } from './players.service';
 import { ApiTags, ApiOperation, ApiResponse, ApiQuery, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { GameEventsService } from '../game-events/game-events.service';
 
 @ApiTags('Players')
 @Controller('api/players')
 export class PlayersController {
-  constructor(private readonly playersService: PlayersService) {}
+  constructor(
+    private readonly playersService: PlayersService,
+    private readonly gameEventsService: GameEventsService
+  ) {}
 
   @Get()
   @ApiOperation({ summary: 'Get players with optional filters' })
@@ -29,7 +33,15 @@ export class PlayersController {
   @ApiOperation({ summary: 'Update player lineup selection' })
   @ApiResponse({ status: 200, description: 'Lineup updated successfully' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 400, description: 'Formation modification blocked' })
   async updateLineup(@Request() req, @Body() body: { playerIds: number[] }) {
+    // Controlla se è possibile modificare la formazione
+    const formationCheck = await this.gameEventsService.canModifyFormation();
+    
+    if (!formationCheck.canModify) {
+      throw new BadRequestException(`Impossibile modificare la formazione: ${formationCheck.reason}`);
+    }
+
     const { playerIds } = body;
     const userId = req.user.id;
 
@@ -51,7 +63,8 @@ export class PlayersController {
 
     return {
       success: true,
-      message: `Formazione aggiornata: ${playerIds.length}/8 giocatori schierati`
+      message: `Formazione aggiornata: ${playerIds.length}/8 giocatori schierati`,
+      formationStatus: formationCheck
     };
   }
 

@@ -60,6 +60,70 @@ export class GameEventsService {
     });
   }
 
+  async getNextEvent(): Promise<GameEvent | null> {
+    const now = new Date();
+    
+    return this.gameEventsRepository.findOne({
+      where: { 
+        active: true,
+        date: MoreThan(now)
+      },
+      order: { date: 'ASC' }
+    });
+  }
+
+  async canModifyFormation(): Promise<{ canModify: boolean; reason?: string; nextEvent?: GameEvent; hoursUntilBlock?: number }> {
+    const nextEvent = await this.getNextEvent();
+    
+    if (!nextEvent) {
+      return { 
+        canModify: true, 
+        reason: "Nessun evento programmato" 
+      };
+    }
+
+    const now = new Date();
+    const eventDate = new Date(nextEvent.date);
+    const twelveHoursBeforeEvent = new Date(eventDate.getTime() - (12 * 60 * 60 * 1000));
+    const hoursUntilEvent = Math.max(0, Math.floor((eventDate.getTime() - now.getTime()) / (1000 * 60 * 60)));
+    const hoursUntilBlock = Math.max(0, Math.floor((twelveHoursBeforeEvent.getTime() - now.getTime()) / (1000 * 60 * 60)));
+
+    // Se mancano più di 12 ore all'evento, si può modificare
+    if (now < twelveHoursBeforeEvent) {
+      return { 
+        canModify: true, 
+        nextEvent,
+        hoursUntilBlock,
+        reason: `Formazione modificabile ancora per ${hoursUntilBlock} ore (evento "${nextEvent.name}" in ${hoursUntilEvent} ore)` 
+      };
+    }
+
+    // Se mancano meno di 12 ore all'evento, la formazione è bloccata
+    // Controlla se ci sono eventi precedenti non chiusi (influenza il messaggio)
+    const previousEvents = await this.gameEventsRepository.find({
+      where: { 
+        active: true,
+        date: LessThanOrEqual(now),
+        closed: false
+      },
+      order: { date: 'DESC' }
+    });
+
+    let reason: string;
+    if (previousEvents.length > 0) {
+      const lastUnClosedEvent = previousEvents[0];
+      reason = `Formazione bloccata: mancano solo ${hoursUntilEvent} ore all'evento "${nextEvent.name}" e l'evento precedente "${lastUnClosedEvent.name}" non è ancora chiuso`;
+    } else {
+      reason = `Formazione bloccata: mancano solo ${hoursUntilEvent} ore all'evento "${nextEvent.name}" (meno di 12 ore richieste)`;
+    }
+
+    return { 
+      canModify: false, 
+      nextEvent,
+      reason
+    };
+  }
+
   async findPast(): Promise<GameEvent[]> {
     const now = new Date();
     now.setHours(23, 59, 59, 999);

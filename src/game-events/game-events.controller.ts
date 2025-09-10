@@ -140,5 +140,10 @@ export class GameEventsController {
     return this.gameEventsService.removeCompletely(+id);
   }
 
-
+  @Get('formation/status')
+  @ApiOperation({ summary: 'Controlla se è possibile modificare la formazione' })
+  @ApiResponse({ status: 200, description: 'Stato della possibilità di modificare la formazione' })
+  getFormationStatus() {
+    return this.gameEventsService.canModifyFormation();
+  }
 }
