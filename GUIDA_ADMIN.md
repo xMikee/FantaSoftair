@@ -34,7 +34,7 @@ Puoi anche gestire lo stato "attivo" di ogni evento, utile se devi temporaneamen
 Come amministratore, hai un controllo diretto sul mercato che va oltre la semplice gestione: puoi intervenire per mantenere l'equilibrio competitivo, aiutare manager in difficoltà o correggere errori. Questa funzionalità ti rende arbitro delle dinamiche economiche del FantaSoftair.
 
 ### Gestire le squadre come un vero direttore sportivo
-Seleziona qualsiasi squadra dal dropdown per visualizzare la sua situazione attuale. Ogni squadra inizia con un budget standard di 1000 crediti (nota che la guida originale menzionava 80, ma il sistema attuale usa 1000), che rappresenta il capitale iniziale per costruire la propria rosa di giocatori.
+Seleziona qualsiasi squadra dal dropdown per visualizzare la sua situazione attuale. Ogni squadra inizia con un budget standard di 80 crediti (nota che la guida originale menzionava 80, ma il sistema attuale usa 80), che rappresenta il capitale iniziale per costruire la propria rosa di giocatori.
 
 Quando visualizzi una squadra, vedrai due sezioni principali: i **giocatori disponibili** (quelli che la squadra può ancora acquistare) e i **giocatori già posseduti**. Da qui puoi intervenire direttamente sul mercato: acquistare giocatori per conto di una squadra o vendere giocatori che già possiede.
 
@@ -129,7 +129,7 @@ Lo **storico utente** è ancora più dettagliato: puoi consultare la cronologia 
 ### I reset: quando è necessario ricominciare
 Come amministratore, disponi di potenti strumenti di reset che ti permettono di gestire situazioni eccezionali o di preparare il sistema per nuove stagioni. Tuttavia, queste sono operazioni **completamente irreversibili** che devono essere usate con estrema cautela.
 
-**Il Reset Mercato** elimina tutte le assegnazioni tra giocatori e squadre, restituendo a ogni squadra il budget iniziale di 1000 crediti. Tutti i giocatori tornano disponibili sul mercato e le squadre si trovano come all'inizio della stagione. Usa questa funzione quando vuoi ricominciare il mercato da capo, magari per una nuova stagione o dopo modifiche significative ai prezzi dei giocatori.
+**Il Reset Mercato** elimina tutte le assegnazioni tra giocatori e squadre, restituendo a ogni squadra il budget iniziale di 80 crediti. Tutti i giocatori tornano disponibili sul mercato e le squadre si trovano come all'inizio della stagione. Usa questa funzione quando vuoi ricominciare il mercato da capo, magari per una nuova stagione o dopo modifiche significative ai prezzi dei giocatori.
 
 **Il Reset Punteggi** azzera completamente tutti i punteggi, sia quelli dell'evento corrente ("currentPoints") che quelli della classifica generale ("yearlyPoints"). Questa operazione cancella tutta la storia della competizione e deve essere usata solo in circostanze molto particolari, come l'inizio di un nuovo anno di competizione.
 

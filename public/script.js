@@ -880,7 +880,7 @@ async function updateAllTeams() {
             let playersList = '<p style="color:darkred">Nessun giocatore</p>';
             if (userPlayers.length > 0) {
                 playersList = userPlayers.map(p =>
-                    `<div class="team-player"><span>${p.name} (${p.currentPoints} pts)</span></div>`
+                    `<div class="team-player"><span>${p.name}</span></div>`
                 ).join('');
             }
 
@@ -890,7 +890,7 @@ async function updateAllTeams() {
                     <span><strong>Squadra:</strong> ${user.team_size}/11</span>
                     <span><strong>In Campo:</strong> ${user.lineup_size || 0}/8</span>
                     <span><strong>Crediti:</strong> ${user.credits}</span>
-                    <span><strong>Punti Totali:</strong> ${user.total_points}</span>
+                    
                 </div>
                 <div class="listplayers">
                     ${playersList}

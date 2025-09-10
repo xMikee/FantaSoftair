@@ -9,7 +9,7 @@ export class User {
   @Column({ unique: true })
   name: string;
 
-  @Column({ default: 1000 })
+  @Column({ default: 80 })
   credits: number;
 
   @Column({ default: 0, name: 'total_points' })

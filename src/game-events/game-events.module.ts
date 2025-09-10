@@ -7,12 +7,14 @@ import { Event } from '../database/entities/event.entity';
 import { Player } from '../database/entities/player.entity';
 import { User } from '../database/entities/user.entity';
 import { UserPlayer } from '../database/entities/user-player.entity';
+import { UserEventScore } from '../database/entities/user-event-score.entity';
+import { EventScore } from '../database/entities/event-score.entity';
 import { AuthModule } from '../auth/auth.module';
 import { EventScoringModule } from '../event-scoring/event-scoring.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([GameEvent, Event, Player, User, UserPlayer]),
+    TypeOrmModule.forFeature([GameEvent, Event, Player, User, UserPlayer, UserEventScore, EventScore]),
     AuthModule,
     EventScoringModule
   ],

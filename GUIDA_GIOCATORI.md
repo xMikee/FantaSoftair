@@ -10,7 +10,7 @@ Il FantaSoftair A-Team trasforma le tue sessioni di softair in un'emozionante co
 Iniziare è semplicissimo. Quando apri la piattaforma FantaSoftair, troverai una lista con tutti i nomi dei partecipanti. Cerca il tuo nome e clicca su di esso. Ti verrà chiesta una password: questa è la tua password personale che l'amministratore ti avrà fornito. Una volta inserita, avrai accesso completo a tutte le funzionalità del gioco.
 
 ### Il sistema dei crediti
-Ogni manager (cioè tu!) inizia l'avventura con un budget di **1000 crediti**. Pensa a questi crediti come ai soldi virtuali che userai per costruire la tua squadra. Ogni giocatore reale ha un prezzo fisso in crediti, e dovrai spenderli saggiamente per creare la formazione più competitiva possibile. Non preoccuparti se commetti errori: potrai sempre vendere i giocatori che non ti soddisfano per recuperare i crediti e reinvestirli altrove.
+Ogni manager (cioè tu!) inizia l'avventura con un budget di **80 crediti**. Pensa a questi crediti come ai soldi virtuali che userai per costruire la tua squadra. Ogni giocatore reale ha un prezzo fisso in crediti, e dovrai spenderli saggiamente per creare la formazione più competitiva possibile. Non preoccuparti se commetti errori: potrai sempre vendere i giocatori che non ti soddisfano per recuperare i crediti e reinvestirli altrove.
 
 ## 🛒 COSTRUIRE LA TUA SQUADRA
 

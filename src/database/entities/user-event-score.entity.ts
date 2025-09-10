@@ -20,6 +20,12 @@ export class UserEventScore {
   @Column({ type: 'text', nullable: true, name: 'formation_snapshot' })
   formationSnapshot: string;
 
+  @Column({ type: 'text', nullable: true, name: 'team_ranking_snapshot' })
+  teamRankingSnapshot: string;
+
+  @Column({ type: 'text', nullable: true, name: 'player_ranking_snapshot' })
+  playerRankingSnapshot: string;
+
   @CreateDateColumn({ name: 'calculated_at' })
   calculatedAt: Date;
 

@@ -37,8 +37,9 @@ export class EventScoringService {
     });
 
     if (eventScore) {
-      eventScore.points = points;
-      eventScore.description = description;
+      // Somma i punti invece di sovrascriverli
+      eventScore.points += points;
+      eventScore.description = `${eventScore.description} + ${description || 'Punteggio aggiuntivo'}`;
     } else {
       eventScore = this.eventScoreRepository.create({
         playerId,
@@ -66,29 +67,44 @@ export class EventScoringService {
   }
 
   async calculateUserEventScore(userId: number, gameEventId: number): Promise<UserEventScore> {
-    // Get user's selected players at the time of calculation
-    const selectedUserPlayers = await this.userPlayerRepository.find({
-      where: { userId: userId, selectedForLineup: true },
+    console.log(`Calcolando punteggio per squadra ${userId} nell'evento ${gameEventId}`);
+    
+    // Get ALL user's players (not just selected for lineup) to include all in event scoring
+    const allUserPlayers = await this.userPlayerRepository.find({
+      where: { userId: userId },
       relations: ['player']
     });
     
-    const selectedPlayers = selectedUserPlayers.map(up => up.player);
+    console.log(`Squadra ${userId} ha ${allUserPlayers.length} giocatori totali`);
+    
+    const allPlayers = allUserPlayers.map(up => up.player);
+    const selectedPlayers = allUserPlayers.filter(up => up.selectedForLineup).map(up => up.player);
 
-    // Get event scores for these players for this game event
-    const playerIds = selectedPlayers.map(p => p.id);
+    console.log(`Squadra ${userId} ha ${selectedPlayers.length} giocatori in formazione`);
+
+    // Get event scores for ALL players of this team for this game event
+    const playerIds = allPlayers.map(p => p.id);
     let totalPoints = 0;
+    let teamEventScores = [];
 
     if (playerIds.length > 0) {
-      const eventScores = await this.eventScoreRepository
+      teamEventScores = await this.eventScoreRepository
         .createQueryBuilder('es')
+        .leftJoinAndSelect('es.player', 'player')
         .where('es.playerId IN (:...playerIds)', { playerIds })
         .andWhere('es.gameEventId = :gameEventId', { gameEventId })
         .getMany();
 
-      totalPoints = eventScores.reduce((sum, score) => sum + score.points, 0);
+      totalPoints = teamEventScores.reduce((sum, score) => sum + score.points, 0);
+      
+      console.log(`Squadra ${userId}: ${teamEventScores.length} giocatori con punteggi, totale: ${totalPoints} punti`);
+      
+      if (teamEventScores.length > 0) {
+        console.log(`Dettaglio punteggi:`, teamEventScores.map(es => `${es.player.name}: ${es.points}`).join(', '));
+      }
     }
 
-    // Create formation snapshot
+    // Create formation snapshot (only selected players for formation display)
     const formationSnapshot = JSON.stringify(
       selectedPlayers.map(p => ({
         id: p.id,

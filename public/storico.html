@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Storico Eventi - Fanta Softair A-Team</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .history-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin: 15px 0;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-left: 4px solid #4CAF50;
+        }
+        
+        .history-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        .history-card h3 {
+            margin: 0 0 10px 0;
+            color: #2E7D32;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .history-card .event-date {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        
+        .history-stats {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .stat-item {
+            background: #f5f5f5;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        
+        .event-details {
+            display: none;
+            margin-top: 20px;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+        
+        .rankings-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .tab-button {
+            padding: 10px 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .tab-button.active {
+            border-bottom-color: #4CAF50;
+            color: #4CAF50;
+            font-weight: bold;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .ranking-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        
+        .ranking-table th,
+        .ranking-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .ranking-table th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+            color: #495057;
+        }
+        
+        .ranking-table tr:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .position-medal {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            line-height: 24px;
+            text-align: center;
+            border-radius: 50%;
+            color: white;
+            font-weight: bold;
+            font-size: 12px;
+        }
+        
+        .position-1 { background: #FFD700; }
+        .position-2 { background: #C0C0C0; }
+        .position-3 { background: #CD7F32; }
+        .position-default { background: #6c757d; }
+        
+        .points-positive { color: #28a745; font-weight: bold; }
+        .points-negative { color: #dc3545; font-weight: bold; }
+        .points-zero { color: #6c757d; }
+        
+        .no-history {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #4CAF50;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <!-- Header Component -->
+    <div id="header-container"></div>
+
+    <div id="loading" class="loading">
+        <p>Caricamento storico eventi...</p>
+    </div>
+
+    <!-- Alert Container -->
+    <div id="alert-container"></div>
+
+    <!-- Sezione Storico -->
+    <div id="storico" class="section active">
+        <h2>📚 Storico Eventi Terminati</h2>
+        
+        <div id="history-list">
+            <div class="no-history">
+                <p>Nessun evento terminato trovato.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer Component -->
+    <div id="footer-container"></div>
+</div>
+
+<script src="script.js?v=1725392400"></script>
+<script>
+    let historyData = [];
+    
+    // Utility functions
+    function showLoading(show) {
+        const loading = document.getElementById('loading');
+        if (loading) {
+            loading.style.display = show ? 'block' : 'none';
+        }
+    }
+    
+    function showAlert(message, type = 'info') {
+        const container = document.getElementById('alert-container');
+        if (container) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.textContent = message;
+            alertDiv.style.cssText = `
+                padding: 15px;
+                margin: 10px 0;
+                border-radius: 4px;
+                background: ${type === 'error' ? '#f8d7da' : '#d1ecf1'};
+                color: ${type === 'error' ? '#721c24' : '#0c5460'};
+                border: 1px solid ${type === 'error' ? '#f5c6cb' : '#bee5eb'};
+            `;
+            container.appendChild(alertDiv);
+            
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.parentNode.removeChild(alertDiv);
+                }
+            }, 5000);
+        }
+    }
+    
+    // Load history data
+    async function loadHistory() {
+        try {
+            showLoading(true);
+            const response = await fetch('/api/game-events/history');
+            if (!response.ok) throw new Error('Errore nel caricamento dello storico');
+            
+            historyData = await response.json();
+            renderHistory();
+        } catch (error) {
+            console.error('Errore nel caricamento dello storico:', error);
+            showAlert('Errore nel caricamento dello storico eventi', 'error');
+        } finally {
+            showLoading(false);
+        }
+    }
+    
+    function renderHistory() {
+        const container = document.getElementById('history-list');
+        
+        if (historyData.length === 0) {
+            container.innerHTML = `
+                <div class="no-history">
+                    <h3>📅 Nessun evento terminato con punteggi</h3>
+                    <p>Lo storico mostrerà gli eventi solo quando:</p>
+                    <ul style="text-align: left; max-width: 400px; margin: 20px auto;">
+                        <li>✅ L'evento è stato chiuso dall'admin</li>
+                        <li>✅ Sono stati assegnati punteggi ai giocatori</li>
+                        <li>✅ Le classifiche sono state calcolate</li>
+                    </ul>
+                    <p><small>Per vedere lo storico in azione, chiedi all'admin di assegnare punteggi a un evento e poi chiuderlo.</small></p>
+                </div>
+            `;
+            return;
+        }
+        
+        container.innerHTML = historyData.map(event => `
+            <div class="history-card" onclick="toggleEventDetails(${event.id})">
+                <h3>
+                    🏁 ${event.name}
+                    <span style="margin-left: auto; font-size: 14px;">▼</span>
+                </h3>
+                <div class="event-date">
+                    ${new Date(event.date).toLocaleDateString('it-IT', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    })}
+                </div>
+                <!--
+                <div class="history-stats">
+                    <div class="stat-item">
+                        👥 ${event.teamsCount} squadre partecipanti
+                    </div>
+                    <div class="stat-item">
+                        🎯 ${event.playersCount} punteggi giocatori
+                    </div>
+                </div> -->
+                
+                <div id="event-details-${event.id}" class="event-details">
+                    <div class="rankings-tabs" onclick="event.stopPropagation()">
+                        <button class="tab-button active" onclick="showRankingTab(${event.id}, 'teams', this)">
+                            🏆 Classifica Squadre
+                        </button>
+                        <button class="tab-button" onclick="showRankingTab(${event.id}, 'players', this)">
+                            🎯 Classifica Giocatori
+                        </button>
+                    </div>
+                    
+                    <div id="teams-${event.id}" class="tab-content active" onclick="event.stopPropagation()">
+                        <div class="loading-spinner" style="margin: 20px auto;"></div>
+                    </div>
+                    
+                    <div id="players-${event.id}" class="tab-content" onclick="event.stopPropagation()">
+                        <div class="loading-spinner" style="margin: 20px auto;"></div>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+    
+    async function toggleEventDetails(eventId) {
+        const detailsDiv = document.getElementById(`event-details-${eventId}`);
+        const isVisible = detailsDiv.style.display !== 'none';
+        
+        if (isVisible) {
+            detailsDiv.style.display = 'none';
+        } else {
+            detailsDiv.style.display = 'block';
+            
+            // Load team rankings if not loaded
+            const teamsTab = document.getElementById(`teams-${eventId}`);
+            if (teamsTab.querySelector('.loading-spinner')) {
+                await loadEventTeamRankings(eventId);
+            }
+        }
+    }
+    
+    async function showRankingTab(eventId, tabType, clickedElement) {
+        // Prevent event propagation
+        if (window.event) {
+            window.event.stopPropagation();
+        }
+        
+        // Update active tab
+        const tabContainer = document.querySelector(`#event-details-${eventId} .rankings-tabs`);
+        tabContainer.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+        clickedElement.classList.add('active');
+        
+        // Show appropriate content
+        const teamsContent = document.getElementById(`teams-${eventId}`);
+        const playersContent = document.getElementById(`players-${eventId}`);
+        
+        if (tabType === 'teams') {
+            teamsContent.classList.add('active');
+            playersContent.classList.remove('active');
+            
+            // Load data if needed
+            if (teamsContent.querySelector('.loading-spinner')) {
+                await loadEventTeamRankings(eventId);
+            }
+        } else {
+            playersContent.classList.add('active');
+            teamsContent.classList.remove('active');
+            
+            // Load data if needed
+            if (playersContent.querySelector('.loading-spinner')) {
+                await loadEventPlayerRankings(eventId);
+            }
+        }
+    }
+    
+    async function loadEventTeamRankings(eventId) {
+        try {
+            const response = await fetch(`/api/game-events/history/${eventId}/team-rankings`);
+            if (!response.ok) throw new Error('Errore nel caricamento classifica squadre');
+            
+            const rankings = await response.json();
+            const container = document.getElementById(`teams-${eventId}`);
+            
+            container.innerHTML = `
+                <table class="ranking-table">
+                    <thead>
+                        <tr>
+                            <th>Pos.</th>
+                            <th>Squadra</th>
+                            <th>Punti Totali</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rankings.map(team => `
+                            <tr>
+                                <td>
+                                    <span class="position-medal position-${team.position <= 3 ? team.position : 'default'}">
+                                        ${team.position}
+                                    </span>
+                                </td>
+                                <td>
+                                    <strong>${team.teamName}</strong>
+                                </td>
+                                <td>
+                                    <span class="points-${team.totalPoints > 0 ? 'positive' : team.totalPoints < 0 ? 'negative' : 'zero'}">
+                                        ${team.totalPoints > 0 ? '+' : ''}${team.totalPoints}
+                                    </span>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        } catch (error) {
+            console.error('Errore nel caricamento classifica squadre:', error);
+            document.getElementById(`teams-${eventId}`).innerHTML = 
+                '<p style="color: red;">Errore nel caricamento della classifica squadre</p>';
+        }
+    }
+    
+    async function loadEventPlayerRankings(eventId) {
+        try {
+            const response = await fetch(`/api/game-events/history/${eventId}/player-rankings`);
+            if (!response.ok) throw new Error('Errore nel caricamento classifica giocatori');
+            
+            const rankings = await response.json();
+            const container = document.getElementById(`players-${eventId}`);
+            
+            container.innerHTML = `
+                <table class="ranking-table">
+                    <thead>
+                        <tr>
+                            <th>Pos.</th>
+                            <th>Giocatore</th>
+                            <th>Punti</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rankings.map(player => `
+                            <tr>
+                                <td>
+                                    <span class="position-medal position-${player.position <= 3 ? player.position : 'default'}">
+                                        ${player.position}
+                                    </span>
+                                </td>
+                                <td>
+                                    <strong>${player.playerName}</strong>
+                                </td>
+                                <td>
+                                    <span class="points-${player.points > 0 ? 'positive' : player.points < 0 ? 'negative' : 'zero'}">
+                                        ${player.points > 0 ? '+' : ''}${player.points}
+                                    </span>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        } catch (error) {
+            console.error('Errore nel caricamento classifica giocatori:', error);
+            document.getElementById(`players-${eventId}`).innerHTML = 
+                '<p style="color: red;">Errore nel caricamento della classifica giocatori</p>';
+        }
+    }
+    
+    // Initialize page
+    document.addEventListener('DOMContentLoaded', async function() {
+        try {
+            // Load components
+            await loadComponent('header', 'header-container');
+            await loadComponent('footer', 'footer-container');
+            
+            // Load history data
+            await loadHistory();
+        } catch (error) {
+            console.error('Errore nell\'inizializzazione:', error);
+            showAlert('Errore nell\'inizializzazione della pagina', 'error');
+        }
+    });
+</script>
+</body>
+</html>

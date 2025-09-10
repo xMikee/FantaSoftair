@@ -41,7 +41,15 @@ export class AdminService {
         throw new Error('Non è possibile aggiornare punteggi per una giornata già chiusa.');
       }
 
-      // NUOVO SISTEMA FANTASY: Aggiorna currentPoints con controllo per evitare punti negativi
+      // NUOVO SISTEMA: Salva il punteggio nella tabella event_scores per le classifiche storiche
+      await this.eventScoringService.updatePlayerEventScore(
+        playerId, 
+        gameEventId, 
+        points, 
+        description || 'Punteggio evento'
+      );
+
+      // SISTEMA LEGACY: Aggiorna anche currentPoints per compatibilità
       await this.playersService.updateCurrentPoints(playerId, points);
       
       // Mantieni storico degli eventi per riferimento con gameEventId
@@ -73,7 +81,7 @@ export class AdminService {
           await this.usersRepository
             .createQueryBuilder()
             .update()
-            .set({ credits: 1000 })
+            .set({ credits: 80 })
             .execute();
           break;
           
@@ -99,7 +107,7 @@ export class AdminService {
           await this.usersRepository
             .createQueryBuilder()
             .update()
-            .set({ credits: 1000, totalPoints: 0 })
+            .set({ credits: 80, totalPoints: 0 })
             .execute();
           break;
           

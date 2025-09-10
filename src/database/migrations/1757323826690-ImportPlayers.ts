@@ -41,8 +41,6 @@ export class ImportPlayers1757323826690 implements MigrationInterface {
             { id: 46, name: 'Saverio Leone', base_value: 1, current_points: 0, yearly_points: 0, position: null, created_at: '2025-08-29 10:11:57' },
             { id: 47, name: 'Angelo Ostuni', base_value: 4, current_points: 0, yearly_points: 0, position: null, created_at: '2025-08-29 10:11:57' },
             { id: 48, name: 'Pasquale Tragni', base_value: 1, current_points: 0, yearly_points: 0, position: null, created_at: '2025-08-29 10:11:57' },
-            { id: 49, name: 'Stefano Maggio', base_value: 3, current_points: 0, yearly_points: 0, position: null, created_at: '2025-08-29 10:11:57' },
-            { id: 50, name: 'Claudio Lanza', base_value: 3, current_points: 0, yearly_points: 0, position: null, created_at: '2025-08-29 10:11:57' },
             { id: 51, name: 'Paolo Colonna', base_value: 3, current_points: 0, yearly_points: 0, position: null, created_at: '2025-08-29 10:11:57' },
             { id: 52, name: 'Vito Tafuno', base_value: 2, current_points: 0, yearly_points: 0, position: null, created_at: '2025-08-29 10:11:57' },
             { id: 53, name: 'Giuseppe Monitillo', base_value: 2, current_points: 0, yearly_points: 0, position: null, created_at: '2025-08-29 10:11:57' },

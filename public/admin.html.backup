@@ -42,7 +42,7 @@
                 </div>
                 <div id="admin-team-info" style="display: none; margin: 15px 0;">
                     <div id="admin-team-credits" class="credits">
-                        Crediti disponibili: <span id="admin-credits-amount">1000</span>
+                        Crediti disponibili: <span id="admin-credits-amount">80</span>
                     </div>
                     <div id="admin-team-players" style="margin-top: 10px;">
                         <h4>Giocatori in squadra (0/11)</h4>
