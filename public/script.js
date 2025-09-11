@@ -234,7 +234,7 @@ function updateAdminPlayerSelect() {
             allPlayers.forEach(player => {
                 const option = document.createElement('option');
                 option.value = player.id;
-                option.textContent = `${player.name} (${player.currentPoints} pts)`;
+                option.textContent = `${player.name}`;
                 playerSelect.appendChild(option);
             });
         })
