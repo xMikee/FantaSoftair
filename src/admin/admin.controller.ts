@@ -3,6 +3,7 @@ import { AdminService } from './admin.service';
 import { UpdateScoreDto } from './dto/update-score.dto';
 import { UpdateEventScoreDto } from './dto/update-event-score.dto';
 import { ResetSystemDto } from './dto/reset-system.dto';
+import { BulkUpdateScoreDto } from './dto/bulk-update-score.dto';
 import { AdminGuard } from '../auth/guards/admin.guard';
 import { ApiTags, ApiOperation, ApiResponse, ApiHeader } from '@nestjs/swagger';
 import { FastifyReply, FastifyRequest } from 'fastify';
@@ -25,7 +26,7 @@ export class AdminController {
   @ApiResponse({ status: 200, description: 'Admin page served' })
   @ApiResponse({ status: 401, description: 'Admin authentication required' })
   async getAdminPage(@Res() res: FastifyReply) {
-    const adminHtmlPath = join(process.cwd(), 'public', 'admin.html.backup');
+    const adminHtmlPath = join(process.cwd(), 'public', 'admin.html');
     const htmlContent = readFileSync(adminHtmlPath, 'utf-8');
     
     res.type('text/html');
@@ -149,5 +150,12 @@ export class AdminController {
     return this.adminService.closeCurrentEvent(body?.eventId, body?.eventName);
   }
 
+  @Post('bulk-update-scores')
+  @ApiOperation({ summary: 'Bulk update player scores (Admin only)' })
+  @ApiResponse({ status: 200, description: 'Bulk scores updated successfully' })
+  @ApiResponse({ status: 401, description: 'Admin authentication required' })
+  async bulkUpdateScores(@Body() bulkUpdateScoreDto: BulkUpdateScoreDto) {
+    return this.adminService.bulkUpdateScores(bulkUpdateScoreDto.updates);
+  }
 
 }

@@ -2043,3 +2043,261 @@ async function closeCurrentEvent() {
         showAlert('Errore nella chiusura della giornata', 'error');
     }
 }
+
+// Global variable to store player score data
+let playersScoreData = {};
+
+// Load players grid for bulk score assignment
+async function loadPlayersScoreGrid() {
+    try {
+        const playersResponse = await fetch(`${API_BASE}/players`);
+        const players = await playersResponse.json();
+        
+        const eventsResponse = await fetch(`${API_BASE}/admin-eventi`, {
+            headers: { 'admin-password': adminPassword }
+        });
+        const events = await eventsResponse.json();
+        
+        // Update event select
+        const eventSelect = document.getElementById('bulk-event-select');
+        eventSelect.innerHTML = '<option value="">Seleziona evento...</option>';
+        events.forEach(event => {
+            const option = document.createElement('option');
+            option.value = event.id;
+            option.textContent = event.name;
+            eventSelect.appendChild(option);
+        });
+        
+        // Build grid
+        const gridBody = document.getElementById('scores-grid-body');
+        gridBody.innerHTML = '';
+        
+        playersScoreData = {};
+        
+        players.forEach(player => {
+            if (player.name === 'ADMIN') return;
+            
+            playersScoreData[player.id] = {
+                id: player.id,
+                name: player.name,
+                eventType: '',
+                customPoints: '',
+                description: '',
+                points: 0
+            };
+            
+            const row = document.createElement('tr');
+            row.style.borderBottom = '1px solid #e2e8f0';
+            
+            row.innerHTML = `
+                <td style="padding: 8px; border: 1px solid #e2e8f0; font-weight: 500;">${player.name}</td>
+                <td style="padding: 8px; border: 1px solid #e2e8f0;">
+                    <select onchange="updatePlayerGridScore(${player.id}, 'eventType', this.value)" style="width: 100%; padding: 4px; border: 1px solid #d1d5db; border-radius: 4px;">
+                        <option value="">Seleziona...</option>
+                        <option value="+7">Cornetti senza lattosio (+7)</option>
+                        <option value="+6">Cornetti + salmone (+6)</option>
+                        <option value="+5">Cornetti sul campo (+5)</option>
+                        <option value="+5">Cassa peroni fresca (+5)</option>
+                        <option value="+5">Presenze cumulative (+5)</option>
+                        <option value="+5">Crea scenografia (+5)</option>
+                        <option value="+4">Presente (+4)</option>
+                        <option value="+3">Crea obiettivo speciale (+3)</option>
+                        <option value="+3">Aiuto manovalanza (+3)</option>
+                        <option value="+3">Silent kill (+3)</option>
+                        <option value="+2">In anticipo organizzazione (+2)</option>
+                        <option value="+2">Trova equipaggiamento (+2)</option>
+                        <option value="+2">Convocazione evento (+2)</option>
+                        <option value="+1">Kill in pistola (+1) x Kill</option>
+                        <option value="+1">Kill a 1 colpo (+1)</option>
+                        <option value="">------- MALUS --------</option>
+                        <option value="-6">Consiglio disciplinare (-6)</option>
+                        <option value="-5">Bidona domenica (-5)</option>
+                        <option value="-5">Sporca il bosco (-5)</option>
+                        <option value="-3">Perde equipaggiamento (-3)</option>
+                        <option value="-3">Assenza radio/scarica (-3)</option>
+                        <option value="-2">Non mangia carne in compagnia (-2)</option>
+                        <option value="-2">Assente domenica con avviso (-2)</option>
+                        <option value="-2">Sgrana/non funziona fucile (-2)</option>
+                        <option value="-2">Non offre dopo compleanno (-2)</option>
+                        <option value="-2">Non mette presenza (-2)</option>
+                        <option value="-2">Batteria scarica (-2)</option>
+                        <option value="-2">Sgamare (-2)</option>
+                        <option value="-1">Ritardo (-1)</option>
+                        <option value="-1">Uscita anticipata (-1)</option>
+                        <option value="-1">Senza pallini sul campo (-1)</option>
+                        <option value="-1">Patch alta visibilità (-1)</option>
+                    </select>
+                </td>
+                <td style="padding: 8px; border: 1px solid #e2e8f0;">
+                    <input type="number" onchange="updatePlayerGridScore(${player.id}, 'customPoints', this.value)" 
+                           placeholder="Es: +5" style="width: 100%; padding: 4px; border: 1px solid #d1d5db; border-radius: 4px;">
+                </td>
+                <td style="padding: 8px; border: 1px solid #e2e8f0;">
+                    <input type="text" onchange="updatePlayerGridScore(${player.id}, 'description', this.value)" 
+                           placeholder="Descrizione" style="width: 100%; padding: 4px; border: 1px solid #d1d5db; border-radius: 4px;">
+                </td>
+                <td style="padding: 8px; border: 1px solid #e2e8f0; text-align: center; font-weight: bold;" 
+                    id="points-${player.id}">0</td>
+            `;
+            
+            gridBody.appendChild(row);
+        });
+        
+        updatePendingCount();
+        
+    } catch (error) {
+        console.error('Error loading players score grid:', error);
+        showAlert('Errore nel caricamento della griglia giocatori', 'error');
+    }
+}
+
+// Update individual player score in grid
+function updatePlayerGridScore(playerId, field, value) {
+    if (!playersScoreData[playerId]) return;
+    
+    playersScoreData[playerId][field] = value;
+    
+    // Calculate points
+    let points = 0;
+    if (playersScoreData[playerId].customPoints) {
+        points = parseFloat(playersScoreData[playerId].customPoints);
+    } else if (playersScoreData[playerId].eventType) {
+        points = parseFloat(playersScoreData[playerId].eventType);
+    }
+    
+    playersScoreData[playerId].points = points;
+    
+    // Update points display
+    const pointsElement = document.getElementById(`points-${playerId}`);
+    if (pointsElement) {
+        pointsElement.textContent = points;
+        pointsElement.style.color = points > 0 ? '#22c55e' : points < 0 ? '#ef4444' : '#6b7280';
+    }
+    
+    updatePendingCount();
+}
+
+// Update pending scores count
+function updatePendingCount() {
+    let count = 0;
+    Object.values(playersScoreData).forEach(player => {
+        if ((player.eventType || player.customPoints) && player.points !== 0) {
+            count++;
+        }
+    });
+    
+    document.getElementById('pending-scores-count').textContent = count;
+    
+    const saveBtn = document.getElementById('bulk-save-btn');
+    saveBtn.disabled = count === 0;
+    saveBtn.style.opacity = count === 0 ? '0.6' : '1';
+}
+
+// Clear all scores in grid
+function clearAllScores(skipConfirmation = false) {
+    if (!skipConfirmation && !confirm('Sei sicuro di voler cancellare tutti i punteggi inseriti?')) {
+        return;
+    }
+    
+    // Reset all inputs
+    document.querySelectorAll('#scores-grid-body select').forEach(select => {
+        select.value = '';
+    });
+    document.querySelectorAll('#scores-grid-body input').forEach(input => {
+        input.value = '';
+    });
+    
+    // Reset data
+    Object.keys(playersScoreData).forEach(playerId => {
+        playersScoreData[playerId] = {
+            ...playersScoreData[playerId],
+            eventType: '',
+            customPoints: '',
+            description: '',
+            points: 0
+        };
+        
+        const pointsElement = document.getElementById(`points-${playerId}`);
+        if (pointsElement) {
+            pointsElement.textContent = '0';
+            pointsElement.style.color = '#6b7280';
+        }
+    });
+    
+    updatePendingCount();
+}
+
+// Bulk update scores
+async function bulkUpdateScores() {
+    const selectedEventId = document.getElementById('bulk-event-select').value;
+    
+    if (!selectedEventId) {
+        showAlert('Seleziona un evento prima di salvare i punteggi', 'error');
+        return;
+    }
+    
+    // Collect updates
+    const updates = [];
+    Object.values(playersScoreData).forEach(player => {
+        if ((player.eventType || player.customPoints) && player.points !== 0) {
+            updates.push({
+                playerId: player.id,
+                points: player.points,
+                description: player.description || '',
+                gameEventId: parseInt(selectedEventId)
+            });
+        }
+    });
+    
+    if (updates.length === 0) {
+        showAlert('Nessun punteggio da salvare', 'error');
+        return;
+    }
+    
+    try {
+        const saveBtn = document.getElementById('bulk-save-btn');
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Salvando...';
+        
+        const response = await fetch(`${API_BASE}/bulk-update-scores`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'admin-password': adminPassword
+            },
+            body: JSON.stringify({ updates })
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            
+            if (result.success) {
+                showAlert(`✅ ${result.message}`, 'success');
+                clearAllScores(true);
+                await loadInitialData();
+                updateUI();
+            } else {
+                let message = `⚠️ ${result.message}\n\n`;
+                if (result.errors.length > 0) {
+                    message += '❌ Errori:\n';
+                    result.errors.forEach(error => {
+                        const playerName = Object.values(playersScoreData).find(p => p.id === error.playerId)?.name || 'Sconosciuto';
+                        message += `- ${playerName}: ${error.message}\n`;
+                    });
+                }
+                showAlert(message, 'warning');
+            }
+        } else {
+            const error = await response.json();
+            showAlert(error.message || 'Errore nel salvataggio bulk', 'error');
+        }
+        
+    } catch (error) {
+        console.error('Error in bulk update:', error);
+        showAlert('Errore nel salvataggio bulk', 'error');
+    } finally {
+        const saveBtn = document.getElementById('bulk-save-btn');
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Salva Tutti i Punteggi';
+    }
+}

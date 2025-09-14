@@ -57,7 +57,47 @@
                 </div>
             </div>
             <div class="card">
-                <h3>Aggiorna Punteggi</h3>
+                <h3>⚡ Assegnazione Punteggi Veloce (Griglia)</h3>
+                <p style="margin-bottom: 15px; color: #718096;">
+                    Assegna punteggi a più giocatori contemporaneamente usando la griglia
+                </p>
+                
+                <div class="form-group">
+                    <label>Evento (obbligatorio):</label>
+                    <select id="bulk-event-select">
+                        <option value="">Seleziona evento...</option>
+                    </select>
+                </div>
+                
+                <div class="scores-grid-container" style="max-height: 400px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 4px;">
+                    <table class="scores-grid" style="width: 100%; border-collapse: collapse;">
+                        <thead style="background-color: #f7fafc; position: sticky; top: 0;">
+                            <tr>
+                                <th style="padding: 8px; border: 1px solid #e2e8f0; min-width: 120px;">Giocatore</th>
+                                <th style="padding: 8px; border: 1px solid #e2e8f0; min-width: 150px;">Tipo Evento</th>
+                                <th style="padding: 8px; border: 1px solid #e2e8f0; min-width: 80px;">Punti Custom</th>
+                                <th style="padding: 8px; border: 1px solid #e2e8f0; min-width: 120px;">Descrizione</th>
+                                <th style="padding: 8px; border: 1px solid #e2e8f0; width: 60px;">Punti</th>
+                            </tr>
+                        </thead>
+                        <tbody id="scores-grid-body">
+                            <tr><td colspan="5" style="text-align: center; padding: 20px; color: #718096;">Caricamento giocatori...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div style="margin-top: 15px; display: flex; gap: 10px; justify-content: space-between; align-items: center;">
+                    <div style="font-size: 0.9em; color: #718096;">
+                        <span id="pending-scores-count">0</span> punteggi da salvare
+                    </div>
+                    <div>
+                        <button class="btn" onclick="clearAllScores()" style="background-color: #f56565; color: white;">Cancella Tutto</button>
+                        <button class="btn btn-success" onclick="bulkUpdateScores()" id="bulk-save-btn">Salva Tutti i Punteggi</button>
+                    </div>
+                </div>
+                
+                <hr style="margin: 20px 0; border-color: #e2e8f0;">
+                <h4>📝 Assegnazione Singola (Metodo Classico)</h4>
                 <div class="form-group">
                     <label>Seleziona Giocatore:</label>
                     <select id="admin-player-select">
@@ -172,6 +212,7 @@
             
             await loadInitialData();
             await loadAdminData();
+            await loadPlayersScoreGrid();
             hideLoading();
             showAlert('Pannello admin caricato con successo!', 'success');
         } catch (error) {

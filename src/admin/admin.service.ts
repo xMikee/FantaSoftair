@@ -235,6 +235,42 @@ export class AdminService {
     console.log('All team points recalculated successfully');
   }
 
+  async bulkUpdateScores(updates: Array<{playerId: number, points: number, description?: string, gameEventId?: number}>) {
+    const results = [];
+    const errors = [];
+
+    for (const update of updates) {
+      try {
+        const result = await this.updateScore(
+          update.playerId, 
+          update.points, 
+          update.description, 
+          update.gameEventId
+        );
+        results.push({
+          playerId: update.playerId,
+          success: true,
+          message: result.message
+        });
+      } catch (error) {
+        errors.push({
+          playerId: update.playerId,
+          success: false,
+          message: error.message
+        });
+      }
+    }
+
+    return {
+      success: errors.length === 0,
+      message: errors.length === 0 
+        ? `Tutti i ${results.length} punteggi sono stati aggiornati con successo` 
+        : `${results.length} punteggi aggiornati, ${errors.length} errori`,
+      results,
+      errors
+    };
+  }
+
   private generateRandomPassword(): string {
     return crypto.randomBytes(4).toString('hex').toUpperCase();
   }
