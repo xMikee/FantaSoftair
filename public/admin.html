@@ -18,12 +18,30 @@
     <!-- Sezione Admin -->
     <div id="admin" class="section active">
         <h2>⚙️ Pannello Amministrazione</h2>
-        <div class="grid">
-            <div class="card mercato">
-                <h3>🛒 Gestione Mercato</h3>
-                <p style="margin-bottom: 15px; color: #718096;">
-                    Gestione completa del mercato e assegnazione giocatori
-                </p>
+        
+        <!-- Admin Sidebar Navigation -->
+        <div class="admin-layout">
+            <div class="admin-sidebar">
+                <div class="admin-tabs">
+                    <button class="admin-tab-btn active" onclick="showAdminTab('mercato')">
+                        <span>Mercato</span>
+                    </button>
+                    <button class="admin-tab-btn" onclick="showAdminTab('eventi')">
+                        <span>Eventi & Punteggi</span>
+                    </button>
+                    <button class="admin-tab-btn" onclick="showAdminTab('generale')">
+                        <span>Generale</span>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="admin-content">
+                <!-- Tab Mercato -->
+                <div id="admin-tab-mercato" class="admin-tab-content active">
+                    <div class="card mercato">
+                        <p style="margin-bottom: 15px; color: #718096;">
+                            Gestione completa del mercato e assegnazione giocatori
+                        </p>
                 <div class="row m-0">
                     <div class="box_sx">
                         <div class="form-group">
@@ -50,22 +68,63 @@
                             </div>
                         </div>
                     </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
-            <!-- Griglia Full Width -->
-            <div class="card" style="width: 100%; margin-bottom: 20px;">
-                <h3>Assegnazione Punteggi</h3>
+
+                <!-- Tab Eventi & Punteggi -->
+                <div id="admin-tab-eventi" class="admin-tab-content">
+                    <div class="card" style="width: 100%; margin-bottom: 20px;">
+                        <h3>📅 Gestione Eventi</h3>
+                        <p style="margin-bottom: 15px; color: #718096;">
+                            Crea, modifica ed elimina eventi del sistema Fanta
+                        </p>
+
+                        <div class="form-group">
+                            <label>Nome Evento:</label>
+                            <input type="text" id="event-name" placeholder="Es: Battaglia di Primavera 2025">
+                        </div>
+                        <div class="form-group">
+                            <label>Data e Ora Evento:</label>
+                            <input type="datetime-local" id="event-date">
+                        </div>
+                        <div class="form-group">
+                            <label>Descrizione (opzionale):</label>
+                            <textarea id="event-desc" rows="3" style="width: 100%" placeholder="Descrizione dell'evento..."></textarea>
+                        </div>
+                        <button class="btn btn-success" onclick="createGameEvent()">Crea Evento</button>
+
+                        <div class="events-list" style="margin-top: 20px;">
+                            <h4>Eventi Esistenti</h4>
+                            <div id="game-events-list"></div>
+                        </div>
+                    </div>
+                    <div class="card" style="width: 100%; margin-bottom: 20px;">
+                        <div class="form-group">
+                            <label>Seleziona Giornata/Evento da Chiudere:</label>
+                            <select id="day-closure-event-select">
+                                <option value="">Seleziona evento/giornata...</option>
+                            </select>
+                            <small style="color: #718096;">Seleziona quale evento/giornata stai chiudendo per registrarlo nello storico</small>
+                        </div>
+                        <button class="btn btn-warning" onclick="closeCurrentEventWithDay()" style="margin-bottom: 10px;">
+                            🏁 Chiudi Giornata Selezionata
+                        </button>
+                    </div>
+
+                    <div class="card" style="width: 100%; margin-bottom: 20px;">
+                        <h3>Assegnazione Punteggi</h3>
                     <p style="margin-bottom: 15px; color: #718096;">
                         Assegna punteggi a più giocatori contemporaneamente usando la griglia
                     </p>
-                    
+
                     <div class="form-group">
                         <label>Evento (obbligatorio):</label>
                         <select id="bulk-event-select">
                             <option value="">Seleziona evento...</option>
                         </select>
                     </div>
-                    
+
                     <div class="scores-grid-container" style="max-height: 400px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 4px;">
                         <table class="scores-grid" style="width: 100%; border-collapse: collapse;">
                             <thead style="background-color: #f7fafc; position: sticky; top: 0;">
@@ -82,172 +141,129 @@
                             </tbody>
                         </table>
                     </div>
-                    
-                    <div style="margin-top: 15px; display: flex; gap: 10px; justify-content: space-between; align-items: center;">
+
+                    <div class="scores-actions" style="margin-top: 15px; display: flex; gap: 10px; justify-content: space-between; align-items: center;">
                         <div style="font-size: 0.9em; color: #718096;">
                             <span id="pending-scores-count">0</span> punteggi da salvare
                         </div>
-                        <div>
+                        <div class="scores-buttons">
                             <button class="btn" onclick="clearAllScores()" style="background-color: #f56565; color: white;">Cancella Tutto</button>
                             <button class="btn btn-success" onclick="bulkUpdateScores()" id="bulk-save-btn">Salva Tutti i Punteggi</button>
                         </div>
                     </div>
-                    
+
                 </div>
                 
-            <div class="grid grid-2">
-                <div class="card" style="display: none;">
-                    <h3>📝 Assegnazione Singola (Metodo Classico)</h3>
-                    <p style="margin-bottom: 15px; color: #718096; font-size: 0.9em;">
-                        Tutti i punteggi sono ora collegati ad eventi per garantire l'integrità della classifica
-                    </p>
-                    <div class="form-group">
-                        <label>Seleziona Evento (Obbligatorio):</label>
-                        <select id="unified-event-select" required>
-                            <option value="">Seleziona un evento...</option>
-                        </select>
-                        <small style="color: #dc3545; font-weight: bold;">⚠️ È obbligatorio selezionare un evento. Non sono più consentite giocate generiche.</small>
-                    </div>
-                    <div class="form-group">
-                        <label>Seleziona Giocatore:</label>
-                        <select id="admin-player-select">
-                            <option value="">Scegli giocatore...</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Tipo Evento:</label>
-                        <select id="event-type">
-                            <option value="">Seleziona evento...</option>
-                            <option value="+7">Cornetti senza lattosio (+7)</option>
-                            <option value="+6">Cornetti + salmone (+6)</option>
-                            <option value="+5">Cornetti sul campo (+5)</option>
-                            <option value="+5">Cassa peroni fresca (+5)</option>
-                            <option value="+5">Presenze cumulative (+5)</option>
-                            <option value="+5">Crea scenografia (+5)</option>
-                            <option value="+4">Presente (+4)</option>
-                            <option value="+3">Crea obiettivo speciale (+3)</option>
-                            <option value="+3">Aiuto manovalanza (+3)</option>
-                            <option value="+3">Silent kill (+3)</option>
-                            <option value="+2">In anticipo organizzazione (+2)</option>
-                            <option value="+2">Trova equipaggiamento (+2)</option>
-                            <option value="+2">Convocazione evento (+2)</option>
-                            <option value="+1">Kill in pistola (+1) x Kill</option>
-                            <option value="+1">Kill a 1 colpo (+1)</option>
-                            <option value="">------- MALUS --------</option>
-                            <option value="-6">Consiglio disciplinare (-6)</option>
-                            <option value="-5">Bidona domenica (-5)</option>
-                            <option value="-5">Sporca il bosco (-5)</option>
-                            <option value="-3">Perde equipaggiamento (-3)</option>
-                            <option value="-3">Assenza radio/scarica (-3)</option>
-                            <option value="-2">Non mangia carne in compagnia (-2)</option>
-                            <option value="-2">Assente domenica con avviso (-2)</option>
-                            <option value="-2">Sgrana/non funziona fucile (-2)</option>
-                            <option value="-2">Non offre dopo compleanno (-2)</option>
-                            <option value="-2">Non mette presenza (-2)</option>
-                            <option value="-2">Batteria scarica (-2)</option>
-                            <option value="-2">Sgamare (-2)</option>
-                            <option value="-1">Ritardo (-1)</option>
-                            <option value="-1">Uscita anticipata (-1)</option>
-                            <option value="-1">Senza pallini sul campo (-1)</option>
-                            <option value="-1">Patch alta visibilità (-1)</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Punti personalizzati (opzionale):</label>
-                        <input type="number" id="custom-points" placeholder="Es: +5 o -3">
-                    </div>
-                    <div class="form-group">
-                        <label>Descrizione:</label>
-                        <input type="text" id="event-description" placeholder="Descrizione dell'evento">
-                    </div>
-                    <button class="btn btn-success" onclick="updatePlayerScore()">Aggiorna Punteggio</button>
-                    <hr style="margin: 20px 0; border-color: #e2e8f0;">
-                    
-                    <div class="day-closure-section">
-                        <h4>🏁 Chiusura Giornata</h4>
-                        <p style="margin-bottom: 15px; color: #718096; font-size: 0.9em;">
-                            <strong>Sistema Fantasy Football:</strong> Chiudi la giornata per trasferire i punti nello storico annuale e azzerare per il prossimo evento.
-                        </p>
-                        
-                        <div class="form-group">
-                            <label>Seleziona Giornata/Evento da Chiudere:</label>
-                            <select id="day-closure-event-select">
-                                <option value="">Seleziona evento/giornata...</option>
-                            </select>
-                            <small style="color: #718096;">Seleziona quale evento/giornata stai chiudendo per registrarlo nello storico</small>
+                    <div class="grid grid-2">
+                        <div class="card" style="display: none;">
+                            <h3>📝 Assegnazione Singola (Metodo Classico)</h3>
+                            <p style="margin-bottom: 15px; color: #718096; font-size: 0.9em;">
+                                Tutti i punteggi sono ora collegati ad eventi per garantire l'integrità della classifica
+                            </p>
+                            <div class="form-group">
+                                <label>Seleziona Evento (Obbligatorio):</label>
+                                <select id="unified-event-select" required>
+                                    <option value="">Seleziona un evento...</option>
+                                </select>
+                                <small style="color: #dc3545; font-weight: bold;">⚠️ È obbligatorio selezionare un evento. Non sono più consentite giocate generiche.</small>
+                            </div>
+                            <div class="form-group">
+                                <label>Seleziona Giocatore:</label>
+                                <select id="admin-player-select">
+                                    <option value="">Scegli giocatore...</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Tipo Evento:</label>
+                                <select id="event-type">
+                                    <option value="">Seleziona evento...</option>
+                                    <option value="+7">Cornetti senza lattosio (+7)</option>
+                                    <option value="+6">Cornetti + salmone (+6)</option>
+                                    <option value="+5">Cornetti sul campo (+5)</option>
+                                    <option value="+5">Cassa peroni fresca (+5)</option>
+                                    <option value="+5">Presenze cumulative (+5)</option>
+                                    <option value="+5">Crea scenografia (+5)</option>
+                                    <option value="+4">Presente (+4)</option>
+                                    <option value="+3">Crea obiettivo speciale (+3)</option>
+                                    <option value="+3">Aiuto manovalanza (+3)</option>
+                                    <option value="+3">Silent kill (+3)</option>
+                                    <option value="+2">In anticipo organizzazione (+2)</option>
+                                    <option value="+2">Trova equipaggiamento (+2)</option>
+                                    <option value="+2">Convocazione evento (+2)</option>
+                                    <option value="+1">Kill in pistola (+1) x Kill</option>
+                                    <option value="+1">Kill a 1 colpo (+1)</option>
+                                    <option value="">------- MALUS --------</option>
+                                    <option value="-6">Consiglio disciplinare (-6)</option>
+                                    <option value="-5">Bidona domenica (-5)</option>
+                                    <option value="-5">Sporca il bosco (-5)</option>
+                                    <option value="-3">Perde equipaggiamento (-3)</option>
+                                    <option value="-3">Assenza radio/scarica (-3)</option>
+                                    <option value="-2">Non mangia carne in compagnia (-2)</option>
+                                    <option value="-2">Assente domenica con avviso (-2)</option>
+                                    <option value="-2">Sgrana/non funziona fucile (-2)</option>
+                                    <option value="-2">Non offre dopo compleanno (-2)</option>
+                                    <option value="-2">Non mette presenza (-2)</option>
+                                    <option value="-2">Batteria scarica (-2)</option>
+                                    <option value="-2">Sgamare (-2)</option>
+                                    <option value="-1">Ritardo (-1)</option>
+                                    <option value="-1">Uscita anticipata (-1)</option>
+                                    <option value="-1">Senza pallini sul campo (-1)</option>
+                                    <option value="-1">Patch alta visibilità (-1)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Punti personalizzati (opzionale):</label>
+                                <input type="number" id="custom-points" placeholder="Es: +5 o -3">
+                            </div>
+                            <div class="form-group">
+                                <label>Descrizione:</label>
+                                <input type="text" id="event-description" placeholder="Descrizione dell'evento">
+                            </div>
+                            <button class="btn btn-success" onclick="updatePlayerScore()">Aggiorna Punteggio</button>
+                            <hr style="margin: 20px 0; border-color: #e2e8f0;">
+                            
+                            <div class="day-closure-section">
+                                <h4>🏁 Chiusura Giornata</h4>
+                                <p style="margin-bottom: 15px; color: #718096; font-size: 0.9em;">
+                                    <strong>Sistema Fantasy Football:</strong> Chiudi la giornata per trasferire i punti nello storico annuale e azzerare per il prossimo evento.
+                                </p>
+
+                            </div>
                         </div>
-                        
-                        <button class="btn btn-warning" onclick="closeCurrentEventWithDay()" style="margin-bottom: 10px;">
-                            🏁 Chiudi Giornata Selezionata
-                        </button>
+                        <div class="card">
+                            <h3>Storico Eventi</h3>
+                            <div id="event-history"></div>
+                        </div>
+                    </div>
 
+                </div>
+                
+                <!-- Tab Generale -->
+                <div id="admin-tab-generale" class="admin-tab-content">
+                    <div class="grid grid-2">
+
+                        <div class="card">
+                            <h3>Reset Sistema</h3>
+                            <p style="margin-bottom: 15px; color: #718096;">
+                                Attenzione: queste operazioni sono irreversibili!
+                            </p>
+                            <button class="btn btn-danger" onclick="resetSystem('market')">Reset Mercato</button>
+                            <button class="btn btn-danger" onclick="resetSystem('scores')">Reset Punteggi</button>
+                            <button class="btn btn-danger" onclick="resetSystem('all')">Reset Completo</button>
+                        </div>
+                        <div class="card">
+                            <h3>Gestione Password</h3>
+                            <p style="margin-bottom: 15px; color: #718096;">
+                                Visualizza le password di tutti gli utenti
+                            </p>
+                            <button class="btn btn-info" onclick="showAllPasswords()">Mostra Tutte le Password</button>
+                            <div id="passwords-list" style="margin-top: 15px; display: none;">
+                                <div id="passwords-content"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="card">
-                    <h3>Storico Eventi</h3>
-                    <div id="event-history"></div>
-                </div>
             </div>
-
-            <!-- Sezione Classifica Unificata -->
-            <!--<div class="card" style="margin-top: 20px;">
-                <h3>🏆 Classifica Unificata</h3>
-                <p style="margin-bottom: 15px; color: #718096;">
-                    Classifica basata su tutti i punteggi collegati ad eventi - garantisce integrità storica
-                </p>
-                <button class="btn btn-info" onclick="loadUnifiedRankings()">Aggiorna Classifica</button>
-                <div id="unified-rankings" style="margin-top: 15px;">
-                    Clicca "Aggiorna Classifica" per visualizzare
-                </div>
-            </div>-->
-
-
-            <div class="card">
-                <h3>Reset Sistema</h3>
-                <p style="margin-bottom: 15px; color: #718096;">
-                    Attenzione: queste operazioni sono irreversibili!
-                </p>
-                <button class="btn btn-danger" onclick="resetSystem('market')">Reset Mercato</button>
-                <button class="btn btn-danger" onclick="resetSystem('scores')">Reset Punteggi</button>
-                <button class="btn btn-danger" onclick="resetSystem('all')">Reset Completo</button>
-            </div>
-            <div class="card">
-                <h3>Gestione Password</h3>
-                <p style="margin-bottom: 15px; color: #718096;">
-                    Visualizza le password di tutti gli utenti
-                </p>
-                <button class="btn btn-info" onclick="showAllPasswords()">Mostra Tutte le Password</button>
-                <div id="passwords-list" style="margin-top: 15px; display: none;">
-                    <div id="passwords-content"></div>
-                </div>
-            </div>
-
-            <div class="card">
-                <h3>📅 Gestione Eventi</h3>
-                <p style="margin-bottom: 15px; color: #718096;">
-                    Crea, modifica ed elimina eventi del sistema Fanta
-                </p>
-                
-                <div class="form-group">
-                    <label>Nome Evento:</label>
-                    <input type="text" id="event-name" placeholder="Es: Battaglia di Primavera 2025">
-                </div>
-                <div class="form-group">
-                    <label>Data e Ora Evento:</label>
-                    <input type="datetime-local" id="event-date">
-                </div>
-                <div class="form-group">
-                    <label>Descrizione (opzionale):</label>
-                    <textarea id="event-desc" rows="3" style="width: 100%" placeholder="Descrizione dell'evento..."></textarea>
-                </div>
-                <button class="btn btn-success" onclick="createGameEvent()">Crea Evento</button>
-                
-                <div class="events-list" style="margin-top: 20px;">
-                    <h4>Eventi Esistenti</h4>
-                    <div id="game-events-list"></div>
-                </div>
-            </div>
-
         </div>
 
         <!-- Footer Component -->
@@ -340,6 +356,28 @@
             console.error('Error in adminAuthenticated handler:', error);
         }
     });
+
+    // Admin Tabs Functionality
+    function showAdminTab(tabName) {
+        // Remove active class from all buttons
+        document.querySelectorAll('.admin-tab-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        
+        // Hide all tab contents
+        document.querySelectorAll('.admin-tab-content').forEach(content => {
+            content.classList.remove('active');
+        });
+        
+        // Add active class to clicked button
+        event.target.classList.add('active');
+        
+        // Show selected tab content
+        const tabContent = document.getElementById(`admin-tab-${tabName}`);
+        if (tabContent) {
+            tabContent.classList.add('active');
+        }
+    }
 </script>
 </body>
 </html>

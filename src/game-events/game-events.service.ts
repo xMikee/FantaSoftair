@@ -178,64 +178,86 @@ export class GameEventsService {
    * Sistema Fantasy Football: come chiusura di una giornata
    * Salva anche gli snapshot delle classifiche dell'evento
    */
-  async closeCurrentEvent(eventId?: number, eventName?: string): Promise<{ 
-    message: string; 
-    playersUpdated: number; 
-    teamsRecalculated: number; 
+  async closeCurrentEvent(eventId?: number, eventName?: string): Promise<{
+    message: string;
+    playersUpdated: number;
+    teamsRecalculated: number;
   }> {
-    // 1. Se è specificato un eventId, marca l'evento come chiuso e salva gli snapshot delle classifiche
-    if (eventId) {
-      const gameEvent = await this.gameEventsRepository.findOne({
-        where: { id: eventId, active: true }
-      });
-      
-      if (gameEvent) {
-        // Salva gli snapshot delle classifiche prima di chiudere l'evento
-        await this.saveEventRankingsSnapshot(eventId);
-        
-        gameEvent.closed = true;
-        await this.gameEventsRepository.save(gameEvent);
+    try {
+      console.log(`🏁 Iniziando chiusura evento - eventId: ${eventId}, eventName: ${eventName}`);
+
+      // 1. Se è specificato un eventId, marca l'evento come chiuso e salva gli snapshot delle classifiche
+      if (eventId) {
+        const gameEvent = await this.gameEventsRepository.findOne({
+          where: { id: eventId, active: true }
+        });
+
+        if (gameEvent) {
+          console.log(`📊 Evento trovato: ${gameEvent.name}, salvando snapshot...`);
+          // Salva gli snapshot delle classifiche prima di chiudere l'evento
+          await this.saveEventRankingsSnapshot(eventId);
+
+          gameEvent.closed = true;
+          await this.gameEventsRepository.save(gameEvent);
+          console.log(`✅ Evento ${gameEvent.name} marcato come chiuso`);
+        } else {
+          console.log(`⚠️ Nessun evento attivo trovato con ID ${eventId}`);
+        }
       }
-    }
 
-    // 2. Trasferisce currentPoints -> yearlyPoints per tutti i giocatori
-    const players = await this.playersRepository.find();
-    
-    let playersUpdated = 0;
-    for (const player of players) {
-      if (player.currentPoints !== 0) {
-        console.log(`Transferring player ${player.name}: ${player.currentPoints} current -> ${player.yearlyPoints} yearly (will become ${player.yearlyPoints + player.currentPoints})`);
-        player.yearlyPoints += player.currentPoints;
-        player.currentPoints = 0;
-        await this.playersRepository.save(player);
-        playersUpdated++;
-        console.log(`Player ${player.name} updated: yearlyPoints = ${player.yearlyPoints}, currentPoints = ${player.currentPoints}`);
+      // 2. Trasferisce currentPoints -> yearlyPoints per tutti i giocatori
+      console.log(`👥 Caricamento giocatori per trasferimento punti...`);
+      const players = await this.playersRepository.find();
+      console.log(`👥 Trovati ${players.length} giocatori`);
+
+      let playersUpdated = 0;
+      for (const player of players) {
+        if (player.currentPoints !== 0) {
+          console.log(`Transferring player ${player.name}: ${player.currentPoints} current -> ${player.yearlyPoints} yearly (will become ${player.yearlyPoints + player.currentPoints})`);
+          player.yearlyPoints += player.currentPoints;
+          player.currentPoints = 0;
+          await this.playersRepository.save(player);
+          playersUpdated++;
+          console.log(`Player ${player.name} updated: yearlyPoints = ${player.yearlyPoints}, currentPoints = ${player.currentPoints}`);
+        }
       }
+
+      // 3. NON TOCCARE I totalPoints delle squadre - devono rimanere come sono!
+      // I totalPoints vengono calcolati dinamicamente dalla classifica basandosi sui yearlyPoints
+      let teamsRecalculated = 0;
+
+      // 4. Registra la chiusura della giornata nello storico
+      const dayClosureName = eventName || 'Giornata Chiusa';
+      console.log(`📝 Registrazione chiusura giornata: ${dayClosureName}`);
+
+      // Trova il primo giocatore per creare un evento di sistema
+      const firstPlayer = players.length > 0 ? players[0] : null;
+      if (firstPlayer) {
+        const dayClosureEvent = this.eventsRepository.create({
+          playerId: firstPlayer.id,
+          points: 0,
+          description: `🏁 CHIUSURA GIORNATA: ${dayClosureName} - ${playersUpdated} giocatori aggiornati, classifica generale mantenuta`,
+        });
+        await this.eventsRepository.save(dayClosureEvent);
+        console.log(`✅ Evento di chiusura giornata salvato`);
+      }
+
+      const result = {
+        message: `Evento chiuso con successo! Giornata: ${dayClosureName}. Tutti i punti sono stati trasferiti nello storico annuale. La classifica generale mantiene i punti accumulati.`,
+        playersUpdated,
+        teamsRecalculated
+      };
+
+      console.log(`🎉 Chiusura evento completata:`, result);
+      return result;
+
+    } catch (error) {
+      console.error(`❌ Errore durante la chiusura dell'evento:`, error);
+      console.error(`Stack trace:`, error.stack);
+
+      // Rilancia l'errore con informazioni più dettagliate
+      throw new Error(`Errore durante la chiusura dell'evento: ${error.message}`);
     }
-
-    // 3. NON TOCCARE I totalPoints delle squadre - devono rimanere come sono!
-    // I totalPoints vengono calcolati dinamicamente dalla classifica basandosi sui yearlyPoints
-    let teamsRecalculated = 0;
-
-    // 4. Registra la chiusura della giornata nello storico
-    const dayClosureName = eventName || 'Giornata Chiusa';
-    
-    // Trova il primo giocatore per creare un evento di sistema
-    const firstPlayer = players.length > 0 ? players[0] : null;
-    if (firstPlayer) {
-      const dayClosureEvent = this.eventsRepository.create({
-        playerId: firstPlayer.id,
-        points: 0,
-        description: `🏁 CHIUSURA GIORNATA: ${dayClosureName} - ${playersUpdated} giocatori aggiornati, classifica generale mantenuta`,
-      });
-      await this.eventsRepository.save(dayClosureEvent);
-    }
-
-    return {
-      message: `Evento chiuso con successo! Giornata: ${dayClosureName}. Tutti i punti sono stati trasferiti nello storico annuale. La classifica generale mantiene i punti accumulati.`,
-      playersUpdated,
-      teamsRecalculated
-    };
   }
 
   /**
